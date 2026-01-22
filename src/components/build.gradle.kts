@@ -95,7 +95,7 @@ if (!(project.findProperty("enableJavaFx") as? String)
 ) {
     // JavaFX is not present in Maven Central, so exclude the file unless explicitly asked by
     // -PenableJavaFx
-    //logger.lifecycle("RenderInBrowser is excluded from compilation. If you want to compile it, add -PenableJavaFx")
+    logger.lifecycle("RenderInBrowser is excluded from compilation. If you want to compile it, add -PenableJavaFx")
     sourceSets {
         main {
             java {

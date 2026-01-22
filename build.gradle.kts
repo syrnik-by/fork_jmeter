@@ -39,19 +39,20 @@ plugins {
     java
     jacoco
     checkstyle
-    //id("org.jetbrains.gradle.plugin.idea-ext") apply false
-  //  id("org.nosphere.apache.rat")
+    id("org.jetbrains.gradle.plugin.idea-ext") apply false
+    id("org.nosphere.apache.rat")
    // id("com.github.autostyle")
    // id("com.github.spotbugs")
   //  id("net.ltgt.errorprone") apply false
    // id("org.sonarqube")
-   // id("com.github.vlsi.gradle-extensions")
+    id("com.github.vlsi.gradle-extensions")
    // id("com.github.vlsi.ide")
   //  id("com.github.vlsi.stage-vote-release")
     publishing
 }
+val appversion : String by project
 
-version = "jmeter.version"
+version = appversion
 
 //ide {
 //    copyrightToAsf()
@@ -60,13 +61,13 @@ version = "jmeter.version"
 //    doNotDetectFrameworks("android", "jruby")
 //}
 //
-//fun Project.boolProp(name: String) =
-//    findProperty(name)
+fun Project.boolProp(name: String) =
+    findProperty(name)
 //        // Project properties include tasks, extensions, etc, and we want only String properties
 //        // We don't want to use "task" as a boolean property
-//        ?.let { it as? String }
-//        ?.equals("false", ignoreCase = true)?.not()
-//
+        ?.let { it as? String }
+        ?.equals("false", ignoreCase = true)?.not()
+
 //// Release candidate index
 //val String.v: String get() = rootProject.extra["$this.version"] as String
 //version = "jmeter".v + releaseParams.snapshotSuffix
@@ -113,15 +114,14 @@ val lastEditYear by extra { "2026" }
 //    previewSite {
 //        into("rat")
 //        from(rat) {
-//            filteringCharset = "UTF-8"
-//            // XML is not really interesting for now
+////            filteringCharset = "UTF-8"
+////            // XML is not really interesting for now
 //            exclude("rat-report.xml")
-//            // RAT reports have absolute paths, and we don't want to expose them
-//            filter { str: String -> str.replace(rootDir.absolutePath, "") }
-//        }
-//    }
+////            // RAT reports have absolute paths, and we don't want to expose them
+//            filter { str: String -> str.replace(rootDir.absolutePath, "") }     }
+//   }
 //}
-//
+
 //releaseParams {
 //    tlp.set("JMeter")
 //    releaseTag.set("rel/v${project.version}")
@@ -162,9 +162,9 @@ val lastEditYear by extra { "2026" }
 //val skipAutostyle by props()
 //val werror by props(true) // treat javac warnings as errors
 //// Allow to skip building source/binary distributions
-//val skipDist by extra {
-//    boolProp("skipDist") ?: false
-//}
+val skipDist by extra {
+    boolProp("skipDist") ?: false
+}
 // Inherited from stage-vote-release-plugin: skipSign, useGpgCmd
 
 allprojects {
@@ -290,6 +290,8 @@ allprojects {
                 url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
             }
     }
+
+    tasks.register("printAllDependencies",DependencyReportTask::class) {}
 
 //    // JMeter ClassFinder parses "class.path" and tries to find jar names there,
 //    // so we should produce jars without versions names for now

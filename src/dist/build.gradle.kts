@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.endsWith
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -15,7 +17,9 @@
  * limitations under the License.
  */
 
-////import com.github.vlsi.gradle.crlf.CrLfSpec
+import com.github.vlsi.gradle.crlf.CrLfSpec
+import com.github.vlsi.gradle.crlf.LineEndings
+
 ////import com.github.vlsi.gradle.crlf.LineEndings
 ////import com.github.vlsi.gradle.git.FindGitAttributes
 ////import com.github.vlsi.gradle.git.dsl.gitignore
@@ -23,31 +27,49 @@
 ////import kotlin.math.absoluteValue
 ////import org.gradle.api.internal.TaskOutputsInternal
 
-//plugins {
-// //  id("com.github.vlsi.crlf")
-// //  id("com.github.vlsi.stage-vote-release")
+plugins {
+      id("com.github.vlsi.crlf")
+     // id("com.github.vlsi.stage-vote-release")
+    `maven-publish`
+    //id ("distribution")
+}
+
+//distributions {
+//    main {
+//        contents {
+//            into ("/")
+//            from libsDir
+//                    include ‘.jar’
+//            rename '..jar’, “${project.name}.jar”
+//            from “env”
+//            include ‘*.conf’
+//        }
+//    }
 //}
-//
+
+
+
 var jars = arrayOf(
-        ":src:bshclient",
-        ":src:launcher",
-        ":src:components",
-        ":src:core",
-        // ":src:examples",
-        ":src:functions",
-        ":src:jorphan",
-        ":src:protocol:bolt",
-        ":src:protocol:ftp",
-        ":src:protocol:http",
-        ":src:protocol:java",
-        ":src:protocol:jdbc",
-        ":src:protocol:jms",
-        ":src:protocol:junit",
-        ":src:protocol:ldap",
-        ":src:protocol:mail",
-        ":src:protocol:mongodb",
-        ":src:protocol:native",
-        ":src:protocol:tcp")
+    ":src:bshclient",
+    ":src:launcher",
+    ":src:components",
+    ":src:core",
+    // ":src:examples",
+    ":src:functions",
+    ":src:jorphan",
+    ":src:protocol:bolt",
+    ":src:protocol:ftp",
+    ":src:protocol:http",
+    ":src:protocol:java",
+    ":src:protocol:jdbc",
+    ":src:protocol:jms",
+    ":src:protocol:junit",
+    ":src:protocol:ldap",
+    ":src:protocol:mail",
+    ":src:protocol:mongodb",
+    ":src:protocol:native",
+    ":src:protocol:tcp"
+)
 //
 //// isCanBeConsumed = false ==> other modules must not use the configuration as a dependency
 val buildDocs by configurations.creating {
@@ -59,17 +81,17 @@ val generatorJar by configurations.creating {
 //val junitSampleJar by configurations.creating {
 //    isCanBeConsumed = false
 //}
-//val binLicense by configurations.creating {
-//    isCanBeConsumed = false
-//}
+val binLicense by configurations.creating {
+    isCanBeConsumed = false
+}
 //val srcLicense by configurations.creating {
 //    isCanBeConsumed = false
 //}
 //
-//val allTestClasses by configurations.creating {
-//    isCanBeConsumed = true
-//    isCanBeResolved = false
-//}
+val allTestClasses by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
 //
 //// Note: you can inspect final classpath (list of jars in the binary distribution)  via
 //// gw dependencies --configuration runtimeClasspath
@@ -121,17 +143,17 @@ val populateLibs by tasks.registering {
     dependsOn(configurations.runtimeClasspath)
     doLast {
         val deps = configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts
-  //      println(" ----===configurations.runtimeClasspath")
+        //      println(" ----===configurations.runtimeClasspath")
 
-        println( configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts)
+        println(configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts)
         // This ensures project exists, if project is renamed, names should be corrected here as wells
         val launcherProject = project(":src:launcher").path
         val bshclientProject = project(":src:bshclient").path
         val jorphanProject = project(":src:jorphan").path
-       //listOf(libs, libsExt, binLibs).forEach {
-       //    it.fileMode = "644".toInt(8)
-       //    it.dirMode = "755".toInt(8)
-       //}
+        //listOf(libs, libsExt, binLibs).forEach {
+        //    it.fileMode = "644".toInt(8)
+        //    it.dirMode = "755".toInt(8)
+        //}
         for (dep in deps) {
             val compId = dep.id.componentIdentifier
             if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
@@ -263,11 +285,11 @@ val copyLibs by tasks.registering(Sync::class) {
             rename { "ApacheJMeter_generator.jar" }
         }
     }
- //   into("junit") {
- //       from(files(junitSampleJar)) {
- //           rename { "test.jar" }
- //       }
- //   }
+    //   into("junit") {
+    //       from(files(junitSampleJar)) {
+    //           rename { "test.jar" }
+    //       }
+    //   }
 }
 //
 val copyBinLibs by tasks.registering(Copy::class) {
@@ -373,31 +395,34 @@ fun CopySpec.docCssAndImages() {
     }
 }
 
-fun CopySpec.manuals() {
-    from(xdocs) {
-        include("demos/**")
-        include("extending/jmeter_tutorial.pdf")
-        include("usermanual/**/*.pdf")
-    }
-}
+        fun CopySpec.manuals() {
+            from(xdocs) {
+                include("demos/**")
+                include("extending/jmeter_tutorial.pdf")
+                include("usermanual/**/*.pdf")
+            }
+        }
+
+        //
+        fun CopySpec.printableDocumentation() {
+            into("docs") {
+                docCssAndImages()
+            }
+          //  into("printable_docs") {
+          //      from(buildPrintableDoc)
+          //      manuals()
+          //  }
+        }
 //
-//fun CopySpec.printableDocumentation() {
-//    into("docs") {
-//        docCssAndImages()
-//    }
-//    into("printable_docs") {
-//        from(buildPrintableDoc)
-//        manuals()
-//    }
-//}
-//
-//val buildPrintableDoc = createAnakiaTask("buildPrintableDoc", baseDir = xdocs,
-//        style = "stylesheets/site_printable.vsl",
-//        velocityProperties = "$xdocs/velocity.properties",
-//        projectFile = "stylesheets/printable_project.xml",
-//        excludes = arrayOf("**/stylesheets/**", "extending.xml", "extending/*.xml"),
-//        includes = arrayOf("**/*.xml"))
-//
+       // val buildPrintableDoc = createAnakiaTask(
+       //     "buildPrintableDoc", baseDir = xdocs,
+       //     style = "stylesheets/site_printable.vsl",
+       //     velocityProperties = "$xdocs/velocity.properties",
+       //     projectFile = "stylesheets/printable_project.xml",
+       //     excludes = arrayOf("**/stylesheets/**", "extending.xml", "extending/*.xml"),
+       //     includes = arrayOf("**/*.xml")
+       // )
+
 //val previewPrintableDocs by tasks.registering(Copy::class) {
 //    group = JavaBasePlugin.DOCUMENTATION_GROUP
 //    description = "Creates preview of a printable documentation to build/docs/printable_preview"
@@ -471,53 +496,59 @@ fun CopySpec.manuals() {
 //    }
 //}
 //
-val distributionGroup = "distribution"
-//val baseFolder = "apache-jmeter-${rootProject.version}"
-//
-//fun CopySpec.javadocs() = from(javadocAggregate)
-//
-//fun CopySpec.excludeLicenseFromSourceRelease() {
-//    // Source release has "/licenses" folder with licenses for third-party dependencies
-//    // It is populated by "dependencyLicenses" above,
-//    // so we ignore the folder when building source releases
-//    exclude("licenses/**")
-//    exclude("LICENSE")
-//}
-//
-//fun CrLfSpec.binaryLayout() = copySpec {
-//    gitattributes(gitProps)
-//    into(baseFolder) {
-//        // Note: license content is taken from "/build/..", so gitignore should not be used
-//        // Note: this is a "license + third-party licenses", not just Apache-2.0
-//        // Note: files(...) adds both "files" and "dependency"
-//        from(files(binLicense))
-//        from(rootDir) {
-//            gitignore(gitProps)
-//            exclude("bin/testfiles")
-//            exclude("bin/rmi_keystore.jks")
-//            include("bin/**")
-//            include("lib/ext/**")
-//            include("lib/junit/**")
-//            include("extras/**")
-//            include("README.md")
-//            excludeLicenseFromSourceRelease()
-//        }
-//        into("bin") {
-//            with(binLibs)
-//        }
-//        into("lib") {
-//            with(libs)
-//            into("ext") {
-//                with(libsExt)
-//            }
-//        }
-//        printableDocumentation()
-//        into("docs/api") {
-//            javadocs()
-//        }
-//    }
-//}
-//
+        val distributionGroup = "distribution"
+        val baseFolder = "apache-jmeter-${rootProject.version}"
+
+        fun CopySpec.javadocs() = from(javadocAggregate)
+
+        fun CopySpec.excludeLicenseFromSourceRelease() {
+            // Source release has "/licenses" folder with licenses for third-party dependencies
+            // It is populated by "dependencyLicenses" above,
+            // so we ignore the folder when building source releases
+            exclude("licenses/**")
+            exclude("LICENSE")
+        }
+
+        //
+        fun CrLfSpec.binaryLayout() = copySpec {
+
+          //  gitattributes(gitProps)
+            into(baseFolder) {
+
+                println("---->>>>" + baseFolder)
+                // Note: license content is taken from "/build/..", so gitignore should not be used
+                // Note: this is a "license + third-party licenses", not just Apache-2.0
+                // Note: files(...) adds both "files" and "dependency"
+                from(files(binLicense))
+                from(rootDir) {
+                    //    gitignore(gitProps)
+                    exclude("bin/testfiles")
+                    exclude("bin/rmi_keystore.jks")
+                    include("bin/**")
+                    include("lib/ext/**")
+                    include("lib/junit/**")
+                    include("extras/**")
+                    include("README.md")
+                    excludeLicenseFromSourceRelease()
+                }
+                into("bin") {
+                    with(binLibs)
+                }
+                println("binLibs:{$binLibs}")
+                into("lib") {
+                    with(libs)
+                    into("ext") {
+                        with(libsExt)
+                    }
+                    println("libsExt:{$libsExt}")
+                }
+                printableDocumentation()
+                into("docs/api") {
+                    javadocs()
+                }
+            }
+        }
+
 //fun CrLfSpec.sourceLayout() = copySpec {
 //    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 //    gitattributes(gitProps)
@@ -534,101 +565,131 @@ val distributionGroup = "distribution"
 //    }
 //}
 //
-val javadocAggregate by tasks.registering(Javadoc::class) {
-    group = JavaBasePlugin.DOCUMENTATION_GROUP
-    description = "Generates aggregate javadoc for all the artifacts"
+        val javadocAggregate by tasks.registering(Javadoc::class) {
+            group = JavaBasePlugin.DOCUMENTATION_GROUP
+            description = "Generates aggregate javadoc for all the artifacts"
 
-    val sourceSets = jars.map { project(it).sourceSets.main }
+            val sourceSets = jars.map { project(it).sourceSets.main }
 //
-    classpath = files(sourceSets.map { set -> set.map { it.output + it.compileClasspath } })
+            classpath = files(sourceSets.map { set -> set.map { it.output + it.compileClasspath } })
 //    // Aggregate javadoc needs to include generated JMeterVersion class
 //    // So we use delay computation of source files
-    setSource(sourceSets.map { set -> set.map { it.allJava } })
-    setDestinationDir(file("$buildDir/docs/javadocAggregate"))
-}
+            setSource(sourceSets.map { set -> set.map { it.allJava } })
+            setDestinationDir(file("$buildDir/docs/javadocAggregate"))
+        }
 //
-//val skipDist: Boolean by rootProject.extra
+        val skipDist: Boolean by rootProject.extra
 //
 //// Generates distZip, distTar, distZipSource, and distTarSource tasks
 //// The archives and checksums are put to build/distributions
-//for (type in listOf("binary", "source")) {
-//    if (skipDist) {
-//        break
-//    }
-//    for (archive in listOf(Zip::class, Tar::class)) {
-//        val taskName = "dist${archive.simpleName}${type.replace("binary", "").capitalize()}"
-//        val archiveTask = tasks.register(taskName, archive) {
-//            val eol = if (archive == Tar::class) LineEndings.LF else LineEndings.CRLF
-//            group = distributionGroup
-//            description = "Creates $type distribution with $eol line endings for text files"
-//            if (this is Tar) {
-//                compression = Compression.GZIP
-//            }
-//            // Gradle does not track "filters" as archive/copy task dependencies,
-//            // So a mere change of a file attribute won't trigger re-execution of a task
-//            // So we add a custom property to re-execute the task in case attributes change
-//            //inputs.property("gitproperties", gitProps.map { it.props.attrs.toString() })
-//
-//            // Gradle defaults to the following pattern, and JMeter was using apache-jmeter-5.1_src.zip
-//            // [baseName]-[appendix]-[version]-[classifier].[extension]
-//            archiveBaseName.set("apache-jmeter-${rootProject.version}${if (type == "source") "_src" else ""}")
-//            // Discard project version since we want it to be added before "_src"
-//            archiveVersion.set("")
-//           // CrLfSpec(eol).run {
-//           //     wa1191SetInputs(gitProps)
-//           //     with(if (type == "source") sourceLayout() else binaryLayout())
-//           // }
-//        }
-//       // releaseArtifacts {
-//       //     artifact(archiveTask)
-//       // }
-//    }
-//}
-//
-//releaseArtifacts {
-//    previewSite(previewSite) {
-//        into("site") {
-//            from(previewSiteDir)
-//        }
-//    }
-//}
+        for (type in listOf("binary", "source")) {
+            if (skipDist) {
+                break
+            }
+            for (archive in listOf(Zip::class, Tar::class)) {
+                val taskName = "dist${archive.simpleName}${type.replace("binary", "").capitalize()}"
+                val archiveTask = tasks.register(taskName, archive) {
+                    dependsOn(createDist)
 
-val runGui by tasks.registering(JavaExec::class) {
-    group = "Development"
-    description = "Builds and starts JMeter GUI"
-    dependsOn(createDist)
+                        val eol = if (archive == Tar::class) LineEndings.LF else LineEndings.CRLF
+                    group = distributionGroup
+                    description = "Creates $type distribution with TODO "// $eol line endings for text files"
+                    if (this is Tar) {
+                        compression = Compression.GZIP
+                    }
+                    // Gradle does not track "filters" as archive/copy task dependencies,
+                    // So a mere change of a file attribute won't trigger re-execution of a task
+                    // So we add a custom property to re-execute the task in case attributes change
+                    //inputs.property("gitproperties", gitProps.map { it.props.attrs.toString() })
 
-    workingDir = File(project.rootDir, "bin")
-    main = "org.apache.jmeter.NewDriver"
-    classpath("$rootDir/bin/ApacheJMeter.jar")
-    jvmArgs("-Xss256k")
-    jvmArgs("-XX:MaxMetaspaceSize=256m")
-
-    val osName = System.getProperty("os.name")
-    if (osName.contains(Regex("mac os x|darwin|osx", RegexOption.IGNORE_CASE))) {
-        jvmArgs("-Xdock:name=JMeter")
-        jvmArgs("-Xdock:icon=$rootDir/xdocs/images/jmeter_square.png")
-        jvmArgs("-Dapple.laf.useScreenMenuBar=true")
-        jvmArgs("-Dapple.eawt.quitStrategy=CLOSE_ALL_WINDOWS")
-    }
-
-    fun passProperty(name: String, default: String? = null) {
-        val value = System.getProperty(name) ?: default
-        value?.let { systemProperty(name, it) }
-    }
-
-    passProperty("java.awt.headless")
-
-    val props = System.getProperties()
-    @Suppress("UNCHECKED_CAST")
-    for (e in props.propertyNames() as `java.util`.Enumeration<String>) {
-        // Pass -Djmeter.* and -Ddarklaf.* properties to the JMeter process
-        if (e.startsWith("jmeter.") || e.startsWith("darklaf.")) {
-            passProperty(e)
+                    // Gradle defaults to the following pattern, and JMeter was using apache-jmeter-5.1_src.zip
+                    // [baseName]-[appendix]-[version]-[classifier].[extension]
+                    archiveBaseName.set("apache-jmeter-${rootProject.version}${if (type == "source") "_src" else ""}")
+                    // Discard project version since we want it to be added before "_src"
+                    archiveVersion.set("")
+                     CrLfSpec(eol).run {
+                         //wa1191SetInputs(gitProps)
+                       //  with(if
+                       //          (type == "source")
+                       //      sourceLayout()
+                       //
+                       //
+                       //  else
+                             binaryLayout()
+                     }
+                }
+                // releaseArtifacts {
+                //     artifact(archiveTask)
+                // }
+            }
         }
-        if (e == "darklaf.native") {
-            systemProperty("darklaf.decorations", "true")
-            systemProperty("darklaf.allowNativeCode", "true")
+//
+
+        val snapshotsRepoUrl: String by project
+        val releasesRepoUrl: String by project
+        val mavenUsername: String by project
+        val mavenPassword: String by project
+        val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
+        val MVN_PASS = System.getenv("MVN_PASS") ?: mavenPassword
+        val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+
+        publishing {
+            publications {
+                create<MavenPublication>("maven") {
+                    artifact( tasks.getByName("distTar"))
+                    //lib // extras //xdocs //bin
+                }
+            }
+
+            repositories {
+                maven {
+                    url = uri(urlSite)
+                    credentials {
+                        username = MVN_USER
+                        password = MVN_PASS
+                    }
+                }
+            }
         }
-    }
-}
+
+
+        val runGui by tasks.registering(JavaExec::class) {
+            group = "Development"
+            description = "Builds and starts JMeter GUI"
+            dependsOn(createDist)
+
+            workingDir = File(project.rootDir, "bin")
+            main = "org.apache.jmeter.NewDriver"
+            classpath("$rootDir/bin/ApacheJMeter.jar")
+            jvmArgs("-Xss256k")
+            jvmArgs("-XX:MaxMetaspaceSize=256m")
+
+            val osName = System.getProperty("os.name")
+            if (osName.contains(Regex("mac os x|darwin|osx", RegexOption.IGNORE_CASE))) {
+                jvmArgs("-Xdock:name=JMeter")
+                jvmArgs("-Xdock:icon=$rootDir/xdocs/images/jmeter_square.png")
+                jvmArgs("-Dapple.laf.useScreenMenuBar=true")
+                jvmArgs("-Dapple.eawt.quitStrategy=CLOSE_ALL_WINDOWS")
+            }
+
+            fun passProperty(name: String, default: String? = null) {
+                val value = System.getProperty(name) ?: default
+                value?.let { systemProperty(name, it) }
+            }
+
+            passProperty("java.awt.headless")
+
+            val props = System.getProperties()
+            @Suppress("UNCHECKED_CAST")
+            for (e in props.propertyNames() as `java.util`.Enumeration<String>) {
+                // Pass -Djmeter.* and -Ddarklaf.* properties to the JMeter process
+                if (e.startsWith("jmeter.") || e.startsWith("darklaf.")) {
+                    passProperty(e)
+                }
+                if (e == "darklaf.native") {
+                    systemProperty("darklaf.decorations", "true")
+                    systemProperty("darklaf.allowNativeCode", "true")
+                }
+            }
+        }
+

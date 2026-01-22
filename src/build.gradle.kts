@@ -139,6 +139,7 @@ subprojects {
     // See https://stackoverflow.com/a/53661897/1261287
     // Subprojects can't use "publishing" since that accessor is not available at parent project
     // evaluation time
+
     configure<PublishingExtension> {
         publications {
             create<MavenPublication>(project.name) {
@@ -195,16 +196,16 @@ subprojects {
                             comments.set("A business-friendly OSS license")
                         }
                     }
-                    issueManagement {
-                        system.set("bugzilla")
-                        url.set("https://bz.apache.org/bugzilla/describecomponents.cgi?product=JMeter")
-                    }
-                    scm {
-                        connection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
-                        developerConnection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
-                        url.set("https://github.com/apache/jmeter")
-                        tag.set("HEAD")
-                    }
+                //    issueManagement {
+                //        system.set("bugzilla")
+                //        url.set("https://bz.apache.org/bugzilla/describecomponents.cgi?product=JMeter")
+                //    }
+                //   scm {
+                //       connection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
+                //       developerConnection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
+                //       url.set("https://github.com/apache/jmeter")
+                //       tag.set("HEAD")
+                //   }
                 }
             }
         }

@@ -17,6 +17,7 @@
 
 package org.apache.jmeter.util;
 
+import java.lang.reflect.Constructor;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
@@ -54,13 +55,16 @@ import org.slf4j.LoggerFactory;
 public class JsseSSLManager extends SSLManager {
     private static final Logger log = LoggerFactory.getLogger(JsseSSLManager.class);
 
+    private static final String SSL_PROVIDER_CLASSES_LIST =
+            JMeterUtils.getPropDefault("https.providers", null); // $NON-NLS-1$
+
     // Temporary fix to allow default protocol to be changed
     private static final String DEFAULT_SSL_PROTOCOL =
-        JMeterUtils.getPropDefault("https.default.protocol","TLS"); // $NON-NLS-1$ // $NON-NLS-2$
+            JMeterUtils.getPropDefault("https.default.protocol", "TLS"); // $NON-NLS-1$ // $NON-NLS-2$
 
     // Allow reversion to original shared session context
     private static final boolean SHARED_SESSION_CONTEXT =
-        JMeterUtils.getPropDefault("https.sessioncontext.shared",false); // $NON-NLS-1$
+            JMeterUtils.getPropDefault("https.sessioncontext.shared", false); // $NON-NLS-1$
 
     /**
      * Characters per second, used to slow down sockets
@@ -71,6 +75,7 @@ public class JsseSSLManager extends SSLManager {
         if (log.isInfoEnabled()) {
             log.info("Using default SSL protocol: {}", DEFAULT_SSL_PROTOCOL);
             log.info("SSL session context: {}", SHARED_SESSION_CONTEXT ? "shared" : "per-thread");
+            log.info("SSL providers list: {}", SSL_PROVIDER_CLASSES_LIST);
 
             if (CPS > 0) {
                 log.info("Setting up HTTPS SlowProtocol, cps={}", CPS);
@@ -97,6 +102,25 @@ public class JsseSSLManager extends SSLManager {
      */
     public JsseSSLManager(Provider provider) {
         log.debug("ssl Provider = {}", provider);
+
+        if (SSL_PROVIDER_CLASSES_LIST != null) {
+            log.debug("ssl Provider classes list = {}", SSL_PROVIDER_CLASSES_LIST);
+            String[] providerclasses = SSL_PROVIDER_CLASSES_LIST.split(",");
+            for (String providerclass : providerclasses) {
+                if (providerclass == null) {
+                    continue;
+                }
+                try {
+                    Class<?> cl = Class.forName(providerclass);
+                    Constructor<?> con = cl.getConstructor();
+                    setProvider((Provider) con.newInstance());
+                    log.info("Added provider class {}", providerclass);
+                } catch (Exception ex) {
+                    log.error(ex.getMessage(), ex);
+                }
+            }
+        }
+
         setProvider(provider);
         if (null == this.rand) { // Surely this is always null in the constructor?
             this.rand = new SecureRandom();
@@ -161,7 +185,7 @@ public class JsseSSLManager extends SSLManager {
      */
     public SSLContext getContext() throws GeneralSecurityException {
         if (SHARED_SESSION_CONTEXT) {
-            if (log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Using shared SSL context for: {}", Thread.currentThread().getName());
             }
             return this.defaultContext;
@@ -169,13 +193,13 @@ public class JsseSSLManager extends SSLManager {
 
         SSLContext sslContext = this.threadlocal.get();
         if (sslContext == null) {
-            if (log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Creating threadLocal SSL context for: {}", Thread.currentThread().getName());
             }
             sslContext = createContext();
             this.threadlocal.set(sslContext);
         }
-        if (log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Using threadLocal SSL context for: {}", Thread.currentThread().getName());
         }
         return sslContext;
@@ -209,7 +233,7 @@ public class JsseSSLManager extends SSLManager {
             context = SSLContext.getInstance(DEFAULT_SSL_PROTOCOL); // $NON-NLS-1$
         }
         KeyManagerFactory managerFactory =
-            KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         JmeterKeyStore keys = this.getKeyStore();
         managerFactory.init(null, defaultpw == null ? new char[]{} : defaultpw.toCharArray());
         KeyManager[] managers = managerFactory.getKeyManagers();
@@ -239,11 +263,11 @@ public class JsseSSLManager extends SSLManager {
         for (int i = 0; i < trustmanagers.length; i++) {
             if (trustmanagers[i] instanceof X509TrustManager) {
                 trustmanagers[i] = new CustomX509TrustManager(
-                    (X509TrustManager)trustmanagers[i]);
+                        (X509TrustManager) trustmanagers[i]);
             }
         }
         context.init(newManagers, trustmanagers, this.rand);
-        if (log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             String[] dCiphers = context.getSocketFactory().getDefaultCipherSuites();
             String[] sCiphers = context.getSocketFactory().getSupportedCipherSuites();
             int len = (dCiphers.length > sCiphers.length) ? dCiphers.length : sCiphers.length;
@@ -375,11 +399,11 @@ public class JsseSSLManager extends SSLManager {
          */
         @Override
         public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("keyType: {}", keyType[0]);
             }
             String alias = this.store.getAlias();
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Client alias: '{}'", alias);
             }
             return alias;

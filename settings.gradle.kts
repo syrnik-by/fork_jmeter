@@ -36,13 +36,9 @@ pluginManagement {
         maven {
             url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
         }
-       maven {
-           url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
-       }
-
-     // maven {
-     //     url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
-     // }
+        maven {
+            url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
+        }
     }
 }
 
@@ -55,34 +51,34 @@ pluginManagement {
 rootProject.name = "jmeter"
 
 include(
-        "src:bom",
-        "src:bshclient",
-        "src:launcher",
-        "src:components",
-        "src:config",
-        "src:core",
-        "src:examples",
-        "src:functions",
-        "src:generator",
-        "src:jorphan",
-       // "src:licenses",
-        "src:protocol:bolt",
-        "src:protocol:ftp",
-        "src:protocol:http",
-        "src:protocol:java",
-        "src:protocol:jdbc",
-        "src:protocol:jms",
-        "src:protocol:junit",
-        "src:protocol:junit-sample",
-        "src:protocol:ldap",
-        "src:protocol:mail",
-        "src:protocol:mongodb",
-        "src:protocol:native",
-        "src:protocol:tcp",
-     //   "src:release",
-        "src:testkit",
-        "src:testkit-wiremock",
-        "src:dist"
+    "src:bom",
+    "src:bshclient",
+    "src:launcher",
+    "src:components",
+    "src:config",
+    "src:core",
+    "src:examples",
+    "src:functions",
+    "src:generator",
+    "src:jorphan",
+    // "src:licenses",
+    "src:protocol:bolt",
+    "src:protocol:ftp",
+    "src:protocol:http",
+    "src:protocol:java",
+    "src:protocol:jdbc",
+    "src:protocol:jms",
+    "src:protocol:junit",
+    "src:protocol:junit-sample",
+    "src:protocol:ldap",
+    "src:protocol:mail",
+    "src:protocol:mongodb",
+    "src:protocol:native",
+    "src:protocol:tcp",
+    //   "src:release",
+    "src:testkit",
+    "src:testkit-wiremock",
+    "src:dist"
     //    "src:dist-check"
 )
 
@@ -101,14 +97,14 @@ fun String?.toBool(nullAs: Boolean, blankAs: Boolean, default: Boolean) =
     }
 
 fun property(name: String) =
-        when (extra.has(name)) {
-                true -> extra.get(name) as? String
-                else -> null
-        }
+    when (extra.has(name)) {
+        true -> extra.get(name) as? String
+        else -> null
+    }
 
 if (property("localReleasePlugins").toBool(nullAs = false, blankAs = true, default = false)) {
-        // This enables to use local clone of vlsi-release-plugins for debugging purposes
-        includeBuild("../vlsi-release-plugins")
+    // This enables to use local clone of vlsi-release-plugins for debugging purposes
+    includeBuild("../vlsi-release-plugins")
 }
 
 val isCiServer = System.getenv().containsKey("CI")
@@ -116,12 +112,12 @@ val isCiServer = System.getenv().containsKey("CI")
 
 // Checksum plugin sources can be validated at https://github.com/vlsi/vlsi-release-plugins
 buildscript {
-   // dependencies {
-   //     classpath("com.github.vlsi.gradle:checksum-dependency-plugin:${settings.extra["com.github.vlsi.checksum-dependency.version"]}") {
-   //         // Gradle ships kotlin-stdlib which is good enough
-   //         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-   //     }
-   // }
+    // dependencies {
+    //     classpath("com.github.vlsi.gradle:checksum-dependency-plugin:${settings.extra["com.github.vlsi.checksum-dependency.version"]}") {
+    //         // Gradle ships kotlin-stdlib which is good enough
+    //         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
+    //     }
+    // }
     repositories {
 
         maven {
@@ -200,3 +196,4 @@ dependencyResolutionManagement {
         }
     }
 }
+include("psbmeter")
