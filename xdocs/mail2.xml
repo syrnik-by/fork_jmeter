@@ -19,7 +19,7 @@
 <document>
 
   <properties>
-    <author email="dev.AT.jmeter.DOT.apache.DOT.org">Apache JMeter Project</author>
+    <author email="dev.AT.jmeter.DOT.apache.DOT.org">?? ?????? Project</author>
     <title>Mailing Lists</title>
   </properties>
 
@@ -47,9 +47,9 @@ For details of how to subscribe/unsubscribe please read
 <p>
 The following mailing lists are available:
 </p>
-<subsection name="Apache JMeter User" anchor="JMeterUser">
+<subsection name="?? ?????? User" anchor="JMeterUser">
 <p>
-This is the list where users of Apache JMeter meet and discuss issues.
+This is the list where users of ?? ?????? meet and discuss issues.
 </p>
 <p>
 Developers are also expected to be lurking on this list to offer support to users of JMeter.
@@ -65,7 +65,7 @@ For old postings, please see the Jakarta JMeter User list, below.
 <li>Archives at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-user/">jmeter-user Archive</a></li>
 </ul>
 </subsection>
-<subsection name="Apache JMeter Developer" anchor="JMeterDev">
+<subsection name="?? ?????? Developer" anchor="JMeterDev">
 <p>
 This is the list where participating developers meet and discuss issues, code changes/additions etc.
 </p>
@@ -84,7 +84,7 @@ For earlier postings, please see below.
 <li>Archives at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-dev/">jmeter-dev Archive</a></li>
 </ul>
 </subsection>
-<subsection name="Apache JMeter Commits" anchor="JMeterCommits">
+<subsection name="?? ?????? Commits" anchor="JMeterCommits">
 <p>
 SVN commit messages are sent here.
 </p>
@@ -95,7 +95,7 @@ Prior to Nov 2011, they were sent to the Jakarta Notifications list, see below.
 <li>Archives at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-commits/">jmeter-commits Archive</a></li>
 </ul>
 </subsection>
-<subsection name="Apache JMeter Issues" anchor="JMeterIssues">
+<subsection name="?? ?????? Issues" anchor="JMeterIssues">
 <p>
 <a href="https://bz.apache.org/bugzilla/">Bugzilla</a> messages are sent here.
 </p>

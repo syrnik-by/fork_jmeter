@@ -1,6 +1,6 @@
 # How to contribute
 
-Want to show Apache JMeter some love? Help out by contributing!
+Want to show НТ Мастер some love? Help out by contributing!
 
 ## :beetle: Found a bug
 
@@ -79,7 +79,7 @@ However, before sending a patch, please make sure that the following applies:
 
 ## :heart: Adding something new
 
-We do love to enhance Apache JMeter with you to become more powerful!
+We do love to enhance НТ Мастер with you to become more powerful!
 The best way to workout your idea is to discuss it first at our dev mailing list:
 
 * [JMeter developers mailing list](https://jmeter.apache.org/mail2.html#JMeterDev)

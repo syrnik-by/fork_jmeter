@@ -7,16 +7,16 @@ http://openiconlibrary.sourceforge.net/
 Detailed Licenses information:
 http://openiconlibrary.sourceforge.net/LICENSES.html
 
-============ Packages used by Apache JMeter =========
+============ Packages used by НТ Мастер =========
 
 open_icon_library-devel-CC  (Creative Commons and Public Domain only)
 open_icon_library-CC        (Creative Commons and Public Domain only)
     List of licenses used in these packages:
-        Creative Commons Attribution 
-        Creative Commons Attribution-Share Alike 
+        Creative Commons Attribution
+        Creative Commons Attribution-Share Alike
         Public Domain
 
-========Icons's sources used by Apache JMeter==========
+========Icons's sources used by НТ Мастер==========
 
 echo-icon-theme (echo)
     link: https://fedorahosted.org/echo-icon-theme/
@@ -35,7 +35,7 @@ Oxygen Icons 4.3.1 (KDE) (oxygen)
 
 Tango Icon Library 0.8.90 (tango)
     link: http://tango.freedesktop.org/Tango_Icon_Library
-    license: Public Domain 
+    license: Public Domain
     License link: http://en.wikipedia.org/wiki/Public_domain
     formats: svg, png
     subdirectory: open_icon_library-devel/icons/tango

@@ -1,6 +1,6 @@
 # Reporting an issue:
 
-- Mention JVM implementation (OpenJDK, Oracle JDK, ...), versions of Java, Apache JMeter
+- Mention JVM implementation (OpenJDK, Oracle JDK, ...), versions of Java, НТ Мастер
 - Provide anonymized and as simple as possible test plan helping reproduce the issue
 - Provide jmeter.log
 - If it's a bug, explain clearly how to reproduce:

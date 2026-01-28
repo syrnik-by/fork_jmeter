@@ -131,7 +131,7 @@ val libs = copySpec {
 }
 //
 val libsExt = copySpec {
-//    // Apache JMeter jars
+//    // НТ Мастер jars
 }
 
 val binLibs = copySpec {

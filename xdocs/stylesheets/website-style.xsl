@@ -143,8 +143,8 @@
             <xsl:value-of select="$year" />
             , Apache Software Foundation
           </div>
-          <div class="trademarks">Apache, Apache JMeter, JMeter, the Apache
-            feather, and the Apache JMeter logo are
+          <div class="trademarks">Apache, НТ Мастер, JMeter, the Apache
+            feather, and the НТ Мастер logo are
             trademarks of the
             Apache Software Foundation.
           </div>

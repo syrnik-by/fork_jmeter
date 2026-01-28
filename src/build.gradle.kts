@@ -185,7 +185,7 @@ subprojects {
                         // Re-format the XML
                         asNode()
                     }
-                    name.set("Apache JMeter ${project.name.capitalize()}")
+                    name.set("НТ Мастер ${project.name.capitalize()}")
                     description.set(project.description)
                     inceptionYear.set("1998")
                     url.set("http://jmeter.apache.org/")

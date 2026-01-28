@@ -1,4 +1,4 @@
-<h1 align="center"><img src="https://jmeter.apache.org/images/logo.svg" alt="Apache JMeter logo" /></h1>
+Olga<h1 align="center"><img src="" alt="НТ Мастер" /></h1>
 
 An Open Source Java application designed to measure performance and load test applications.
 
@@ -14,7 +14,7 @@ By The Apache Software Foundation
 
 ## What Is It?
 
-Apache JMeter can measure performance and load test static and dynamic web applications.
+НТ Мастер can measure performance and load test static and dynamic web applications.
 
 It can be used to simulate a heavy load on a server, group of servers,
 network or object to test its strength or to analyze overall performance under different load types.
@@ -88,12 +88,12 @@ Details of the latest version can be found on the
 
 ## Requirements
 
-The following requirements exist for running Apache JMeter:
+The following requirements exist for running НТ Мастер:
 
 - Java Interpreter:
 
   A fully compliant Java 8 Runtime Environment is required
-  for Apache JMeter to execute. A JDK with `keytool` utility is better suited
+  for НТ Мастер to execute. A JDK with `keytool` utility is better suited
   for Recording HTTPS websites.
 
 - Optional jars:
@@ -109,7 +109,7 @@ The following requirements exist for running Apache JMeter:
 
   A Java compiler is not needed since the distribution includes a
   precompiled Java binary archive.
-  > **Note** that a compiler is required to build plugins for Apache JMeter.
+  > **Note** that a compiler is required to build plugins for НТ Мастер.
 
 ## Installation Instructions
 
@@ -251,18 +251,15 @@ code and source code.
 The following provides more details on the included software that
 may be subject to export controls on cryptographic software:
 
-Apache JMeter interfaces with the
+НТ Мастер interfaces with the
 Java Secure Socket Extension (JSSE) API to provide
 
 - HTTPS support
 
-Apache JMeter interfaces (via Apache HttpClient4) with the
+НТ Мастер interfaces (via Apache HttpClient4) with the
 Java Cryptography Extension (JCE) API to provide
 
 - NTLM authentication
 
-Apache JMeter does not include any implementation of JSSE or JCE.
+НТ Мастер does not include any implementation of JSSE or JCE.
 
-## Thanks
-
-**Thank you for using Apache JMeter.**

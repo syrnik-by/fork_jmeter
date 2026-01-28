@@ -144,7 +144,7 @@
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="605898121">&lt;title&gt;Apache JMeter - Apache JMeter&amp;trade;&lt;/title&gt;</stringProp>
+              <stringProp name="605898121">&lt;title&gt;НТ Мастер - НТ Мастер&amp;trade;&lt;/title&gt;</stringProp>
             </collectionProp>
             <stringProp name="TestPlan.comments">We check page contains some text</stringProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
@@ -192,7 +192,7 @@
           <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="-420601512">&lt;title&gt;Apache JMeter - Changes&lt;/title&gt;</stringProp>
+              <stringProp name="-420601512">&lt;title&gt;НТ Мастер - Changes&lt;/title&gt;</stringProp>
             </collectionProp>
             <stringProp name="TestPlan.comments">We check page contains some text</stringProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>

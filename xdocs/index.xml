@@ -22,12 +22,12 @@
 ]>
 <document>
   <properties>
-     <title>Apache JMeter&trade;</title>
+     <title>НТ Мастер&trade;</title>
   </properties>
   <body>
-    <section name="Apache JMeter&trade;">
+    <section name="НТ Мастер&trade;">
     <p>
-      The <b>Apache JMeter&trade;</b> application is open source software,
+      The <b>НТ Мастер&trade;</b> application is open source software,
       a 100% pure Java application designed
       to load test functional behavior and measure performance.  It was
       originally designed for testing Web Applications but has
@@ -35,13 +35,13 @@
     </p>
     <h2>What can I do with it?</h2>
     <p>
-      Apache JMeter may be used to test performance both on static and dynamic
+      НТ Мастер may be used to test performance both on static and dynamic
       resources, Web dynamic applications. <br/>
       It can be used to simulate a heavy load on a server, group of servers,
       network or object to test its strength or to analyze overall performance
       under different load types.<br/>
     </p>
-<p>Apache JMeter features include:</p>
+<p>НТ Мастер features include:</p>
 <ul>
     <li>Ability to load and performance test many different applications/server/protocol types:
         <ul>

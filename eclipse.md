@@ -1,6 +1,6 @@
-![Apache JMeter logo](https://jmeter.apache.org/images/logo.svg)
+![НТ Мастер logo](https://jmeter.apache.org/images/logo.svg)
 
-## Launching Apache JMeter from Eclipse
+## Launching НТ Мастер from Eclipse
 
 You can use the Gradle task `runGui` to run the JMeter GUI, or you can follow the instructions
 below to add a Java Application launch, which will for example, allow you to use the debugger to

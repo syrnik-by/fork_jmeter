@@ -25,12 +25,12 @@
 
 <properties>
   <author email="dev@jmeter.apache.org">JMeter developers</author>
-  <title>Apache JMeter HTTP(S) Test Script Recorder</title>
+  <title>НТ Мастер HTTP(S) Test Script Recorder</title>
 </properties>
 
 <body>
 
-<section name="&sect-num;. Apache JMeter HTTP(S) Test Script Recorder" anchor="script-recorder">
+<section name="&sect-num;. НТ Мастер HTTP(S) Test Script Recorder" anchor="script-recorder">
 
 <p>
 This tutorial attempts to explain the exact steps for recording HTTP/HTTPS. For those new to JMeter, one easy way to create a test plan is to use the Recorder.

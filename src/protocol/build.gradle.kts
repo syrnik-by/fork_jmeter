@@ -149,7 +149,7 @@ project("junit") {
             because("ArrayUtils")
         }
         implementation("org.exparity:hamcrest-date") {
-            because("hamcrest-date.jar was historically shipped with JMeter")
+            because("hamcrest-date.jar was historically shipped with nt-master")
         }
         implementation("com.miglayout:miglayout-swing")
     }

@@ -676,7 +676,7 @@ the comma after <code>7</code> is escaped.</note>
         <property name="Locale to use for format" required="No">
         The string format of a locale. The language code must be lowercase. The country code must be uppercase. The separator must be an underscore, e.g. <code>en_EN</code>.
         See <a href="http://www.oracle.com/technetwork/java/javase/javase7locales-334809.html">http://www.oracle.com/technetwork/java/javase/javase7locales-334809.html</a>.
-        If omitted, by default the function uses the Apache JMeter locale one.
+        If omitted, by default the function uses the НТ Мастер locale one.
         </property>
         <property name="Name of variable" required="No">The name of the variable to set.</property>
 </properties>

@@ -554,7 +554,7 @@ allprojects {
             withType<Jar>().configureEach {
                 manifest {
                     attributes["Bundle-License"] = "Apache-2.0"
-                    attributes["Specification-Title"] = "Apache JMeter"
+                    attributes["Specification-Title"] = "НТ Мастер"
                     attributes["Specification-Vendor"] = "Apache Software Foundation"
                     attributes["Implementation-Vendor"] = "Apache Software Foundation"
                     attributes["Implementation-Vendor-Id"] = "org.apache"
@@ -604,9 +604,9 @@ allprojects {
 //                    docEncoding = "UTF-8"
 //                    charSet = "UTF-8"
 //                    encoding = "UTF-8"
-//                    docTitle = "Apache JMeter ${project.name} API"
-//                    windowTitle = "Apache JMeter ${project.name} API"
-//                    header = "<b>Apache JMeter</b>"
+//                    docTitle = "НТ Мастер ${project.name} API"
+//                    windowTitle = "НТ Мастер ${project.name} API"
+//                    header = "<b>НТ Мастер</b>"
 //                    addStringOption("source", "8")
 //                    bottom =
 //                        "Copyright © 1998-$lastEditYear Apache Software Foundation. All Rights Reserved."

@@ -426,7 +426,7 @@ $node.getText()
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 <tr><td bgcolor="$bannerbg">
 <font color="$bannerfg" face="arial,helvetica,sanserif">
-#set ($anchor = $section.getAttributeValue("anchor")) 
+#set ($anchor = $section.getAttributeValue("anchor"))
 #if($anchor)<a name="$anchor">#end<strong>$section.getAttributeValue("name")</strong>#if($anchor)</a>#sectionlink ($anchor)#end
 </font>
 </td></tr>
@@ -595,7 +595,7 @@ Copyright &copy; 1999-$year, Apache Software Foundation
 </td></tr>
 <tr><td colspan="2">
 <div align="center"><font color="$bodylink" size="-1">
-Apache, Apache JMeter, JMeter, the Apache feather, and the Apache JMeter logo are
+Apache, НТ Мастер, JMeter, the Apache feather, and the НТ Мастер logo are
 trademarks of the Apache Software Foundation.
 </font>
 </div>

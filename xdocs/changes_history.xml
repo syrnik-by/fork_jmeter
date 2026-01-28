@@ -2773,7 +2773,7 @@ Summary
 
 <ch_title>Functions</ch_title>
 <p>New Function <a href="usermanual/functions.html#__digest"><code>__digest</code></a> provides easy computing of SHA-XXX, MDX hashes:
-<source>${__digest(MD5,Apache JMeter 4.0 rocks !,,,)}</source> will return <code>0e16c3ce9b6c9971c69ad685fd875d2b</code></p>
+<source>${__digest(MD5,НТ Мастер 4.0 rocks !,,,)}</source> will return <code>0e16c3ce9b6c9971c69ad685fd875d2b</code></p>
 <p>New Function <a href="usermanual/functions.html#__dateTimeConvert"><code>__dateTimeConvert</code></a> provides easy conversion between date formats:
 <source>${__dateTimeConvert(01 Jan 2017,dd MMM yyyy,dd/MM/yyyy,)}</source> will return <code>01/01/2017</code></p>
 <p>New Function <a href="usermanual/functions.html#__changeCase"><code>__changeCase</code></a> provides ability to switch to Upper / Lower / Capitalized cases
@@ -4215,7 +4215,7 @@ This allows you to update Think Times from one place and let you gain productivi
     <li><bug>57493</bug>Create a documentation page for properties</li>
     <li><bug>59924</bug>The log level of <em>XXX</em> package is set to <code>DEBUG</code> if <code>log_level.<em>XXXX</em></code> property value contains spaces, same for <code>__log</code> function</li>
     <li><bug>59777</bug>Extract SLF4J binding into its own jar and make it a JMeter lib.
-    <note>If you get a warning about multiple SLF4J bindings on startup. Remove either the Apache JMeter provided binding
+    <note>If you get a warning about multiple SLF4J bindings on startup. Remove either the НТ Мастер provided binding
           <code>lib/ApacheJMeter_slf4j_logkit.jar</code>, or all of the other reported bindings.
           For more information you can have a look at <a href="http://www.slf4j.org/codes.html#multiple_bindings">SLF4Js own info page.</a></note>
     </li>
@@ -4611,7 +4611,7 @@ This validation mode can be customized.
 <ch_title>Configuration simplification with better defaults</ch_title>
 <p>Default values for many properties have been modified to make JMeter configuration optimal Out of the box. Read "Incompatible changes" section for more details.</p>
 <ch_title>Apache Groovy bundled with JMeter</ch_title>
-<p><a href="http://www.groovy-lang.org/" target="_blank">Apache Groovy</a>, the well-known JVM scripting language, is now bundled with Apache JMeter in lib folder.
+<p><a href="http://www.groovy-lang.org/" target="_blank">Apache Groovy</a>, the well-known JVM scripting language, is now bundled with НТ Мастер in lib folder.
 This allows you to use it immediately through JSR223 Elements by selecting the Groovy language.</p>
 <ch_title>Superfluous and old properties removed</ch_title>
 <p>Old properties that existed to maintain backward compatibility or to offer some superfluous customization have been removed.
@@ -7098,7 +7098,7 @@ ESC key now closes popups.
 </p>
 
 <h4>User Interface in GNOME 3</h4>
-<p>Display 'Apache JMeter' title in app title bar in Gnome 3
+<p>Display 'НТ Мастер' title in app title bar in Gnome 3
 <figure width="441" height="253" image="changes/2.8/13_gnome3_title.png"></figure>
 </p>
 
@@ -7284,7 +7284,7 @@ Cookie Manager has now the default HC3.1 implementation and a new choice HC4 imp
 <li><bugzilla>53364</bugzilla> - Sort list of Functions in Function Helper Dialog</li>
 <li><bugzilla>53418</bugzilla> - New Option "Delay thread creation until needed" that will create and start threads when needed instead of creating them on Test startup</li>
 <li><bugzilla>42245</bugzilla> - Show clear passwords in HTTP Authorization Manager</li>
-<li><bugzilla>53616</bugzilla> - Display 'Apache JMeter' title in app title bar in Gnome 3</li>
+<li><bugzilla>53616</bugzilla> - Display 'НТ Мастер' title in app title bar in Gnome 3</li>
 <li><bugzilla>53759</bugzilla> - ClientJMeterEngine performs unnecessary traverse using SearchByClass(TestListener)</li>
 <li><bugzilla>52601</bugzilla> - CTRL + F for the new Find feature</li>
 <li><bugzilla>53796</bugzilla> - TestCompiler uses static Set which can grow huge</li>
@@ -10521,7 +10521,7 @@ test engine code.</li>
 </ul>
 </p>
 <p>
-<b>Apache JMeter 1.4.1-dev</b>
+<b>НТ Мастер 1.4.1-dev</b>
 <ul>
    <li>Cleaned up URLSampler code after tons of patches for better readability. (SM)</li>
    <li>Made JMeter send a special &quot;user-agent&quot; identifier. (SM)</li>
@@ -10533,14 +10533,14 @@ test engine code.</li>
  </ul>
  </p>
  <p>
- <b>Apache JMeter 1.4</b> - Jul 11 1999
+ <b>НТ Мастер 1.4</b> - Jul 11 1999
   <ul>
    <li>Fixed a problem with POST actions. Thanks to Brendan Burns for the patch (SM)</li>
    <li>Added close button to the About box for those window managers who don't provide it.
      Thanks to Jan-Henrik Haukeland for pointing it out. (SM)</li>
    <li>Added the simple Spline sample visualizer (JPN)</li>
 </ul> </p>
-  <p><b>Apache JMeter 1.3</b> - Apr 16 1999
+  <p><b>НТ Мастер 1.3</b> - Apr 16 1999
 <ul>
    <li>Run the Garbage Collector and run finalization before starting to sampling to ensure
      same state every time (SM)</li>
@@ -10549,12 +10549,12 @@ test engine code.</li>
    <li>Added windowed sample visualizer (SM)</li>
    <li>Fixed stupid bug for command line arguments. Thanks to Jorge Bracer for pointing this out (SM)</li>
 </ul> </p>
-  <p><b>Apache JMeter 1.2</b> - Mar 17 1999
+  <p><b>НТ Мастер 1.2</b> - Mar 17 1999
 <ul>
    <li>Integrated cookie capabilities with JMeter (SM)</li>
    <li>Added the Cookie manager and Netscape file parser (SD)</li>
    <li>Fixed compilation error for JDK 1.1 (SD)</li> </ul> </p>
-<p> <b>Apache JMeter 1.1</b> - Feb 24 1999
+<p> <b>НТ Мастер 1.1</b> - Feb 24 1999
 <ul>
    <li>Created the opportunity to create URL aliasing from the properties file as well as the
      ability to associate aliases to URL sequences instead of single URLs (SM) Thanks to
@@ -10565,7 +10565,7 @@ test engine code.</li>
    <li>Removed the Java Apache logo (SM)</li>
    <li>Fixed a couple of typos (SM)</li>
    <li>Added UNIX makefile (SD)</li> </ul> </p>
-<p> <b>Apache JMeter 1.0.1</b> - Jan 25 1999
+<p> <b>НТ Мастер 1.0.1</b> - Jan 25 1999
 <ul>
    <li>Removed pending issues doc issues (SM)</li>
    <li>Fixed the unix script (SM)</li>
@@ -10574,7 +10574,7 @@ test engine code.</li>
    <li>Some small updates: fixed Swing location after Java 2(tm) release, license update and
      small cleanups (SM)</li>
 </ul> </p>
-<p> <b>Apache JMeter 1.0</b> - Dec 15 1998
+<p> <b>НТ Мастер 1.0</b> - Dec 15 1998
 <ul>
    <li>Initial version. (SM)</li>
 </ul> </p>

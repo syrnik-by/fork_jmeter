@@ -24,10 +24,10 @@
 
 <document>
 <properties>
-    <title>Download Apache JMeter</title>
+    <title>Download ?? ??????</title>
 </properties>
 <body>
-    <section name="Download Apache JMeter">
+    <section name="Download ?? ??????">
       <p>
         We recommend you use a mirror to download our release
         builds, but you <strong>must</strong> <a href="http://www.apache.org/info/verification.html">verify the integrity</a> of
@@ -72,13 +72,13 @@
         of the downloaded file.
       </p>
       <p>
-      For more information concerning Apache JMeter, see the <a href="http://jmeter.apache.org/">Apache JMeter</a> site.
+      For more information concerning ?? ??????, see the <a href="http://jmeter.apache.org/">?? ??????</a> site.
       </p>
       <p>
       <a href="https://www.apache.org/dist/jmeter/KEYS">KEYS</a>
       </p>
     </section>
-    <section name="Apache JMeter &release; (Requires Java 8+)">
+    <section name="?? ?????? &release; (Requires Java 8+)">
       <subsection name="Binaries" anchor="binaries">
         <table>
           <tr>
@@ -114,7 +114,7 @@
         </p>
         <ul>
           <li class="download"><a href="[preferred]/jmeter/">browse download area</a></li>
-          <li><a href="https://archive.apache.org/dist/jmeter/">Apache JMeter archives&hellip;</a></li>
+          <li><a href="https://archive.apache.org/dist/jmeter/">?? ?????? archives&hellip;</a></li>
           <li><a href="https://archive.apache.org/dist/jakarta/jmeter/">Apache Jakarta JMeter archives&hellip;</a></li>
         </ul>
     </section>

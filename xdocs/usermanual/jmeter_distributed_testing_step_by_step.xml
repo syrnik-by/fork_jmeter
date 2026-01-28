@@ -25,12 +25,12 @@
 
 <properties>
   <author email="dev@jmeter.apache.org">JMeter developers</author>
-  <title>Apache JMeter Distributed Testing Step-by-step</title>
+  <title>НТ Мастер Distributed Testing Step-by-step</title>
 </properties>
 
 <body>
 
-<section name="&sect-num;. Apache JMeter Distributed Testing Step-by-step" anchor="distributed-testing">
+<section name="&sect-num;. НТ Мастер Distributed Testing Step-by-step" anchor="distributed-testing">
 
 <p>
 This short tutorial explains how to use multiple systems to perform stress testing. Before we start, there are a couple of things to check.

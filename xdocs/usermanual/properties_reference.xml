@@ -1600,7 +1600,7 @@ JMETER-SERVER</source>
 </property>
 <property name="jmeter.reportgenerator.report_title">
     Configure this property to change the report title<br/>
-    Defaults to: <code>Apache JMeter Dashboard</code>
+    Defaults to: <code>НТ Мастер Dashboard</code>
 </property>
 <property name="jmeter.reportgenerator.overall_granularity">
     Defines the overall granularity for over time graphs<br/>

@@ -2890,7 +2890,7 @@ For example, the RE <code>(JMeter\w*).*</code> applied to the current JMeter hom
 <br/>
 <source>
 Match count: 26
-Match[1][0]=JMeter - Apache JMeter&lt;/title&gt;
+Match[1][0]=JMeter - НТ Мастер&lt;/title&gt;
 Match[1][1]=JMeter
 Match[2][0]=JMeter" title="JMeter" border="0"/&gt;&lt;/a&gt;
 Match[2][1]=JMeter
@@ -5998,8 +5998,8 @@ extracting the node as text or attribute value and store the result into the giv
        </property>
     <property name="Return entire XPath fragment instead of text content?" required="Yes">
     If selected, the fragment will be returned rather than the text content.<br></br>
-    For example <code>//title</code> would return "<code>&lt;title&gt;Apache JMeter&lt;/title&gt;</code>" rather than "<code>Apache JMeter</code>".<br></br>
-    In this case, <code>//title/text()</code> would return "<code>Apache JMeter</code>".
+    For example <code>//title</code> would return "<code>&lt;title&gt;НТ Мастер&lt;/title&gt;</code>" rather than "<code>НТ Мастер</code>".<br></br>
+    In this case, <code>//title/text()</code> would return "<code>НТ Мастер</code>".
     </property>
     <property name="Name of created variable" required="Yes">The name of the JMeter variable in which to store the result.</property>
     <property name="XPath Query" required="Yes">Element query in XPath 2.0 language. Can return more than one match.</property>
@@ -6069,8 +6069,8 @@ extracting the node as text or attribute value and store the result into the giv
     <property name="Fetch External DTDs"  required="If Tidy is not selected">If selected, external DTDs are fetched.</property>
     <property name="Return entire XPath fragment instead of text content?" required="Yes">
     If selected, the fragment will be returned rather than the text content.<br></br>
-    For example <code>//title</code> would return "<code>&lt;title&gt;Apache JMeter&lt;/title&gt;</code>" rather than "<code>Apache JMeter</code>".<br></br>
-    In this case, <code>//title/text()</code> would return "<code>Apache JMeter</code>".
+    For example <code>//title</code> would return "<code>&lt;title&gt;НТ Мастер&lt;/title&gt;</code>" rather than "<code>НТ Мастер</code>".<br></br>
+    In this case, <code>//title/text()</code> would return "<code>НТ Мастер</code>".
     </property>
     <property name="Name of created variable" required="Yes">The name of the JMeter variable in which to store the result.</property>
     <property name="XPath Query" required="Yes">Element query in XPath language. Can return more than one match.</property>

@@ -19,7 +19,7 @@
 <document>
 
   <properties>
-    <author email="dev.AT.jmeter.DOT.apache.DOT.org">Apache JMeter Project</author>
+    <author email="dev.AT.jmeter.DOT.apache.DOT.org">?? ?????? Project</author>
     <title>Source Repositories</title>
   </properties>
 
@@ -36,7 +36,7 @@ href="download_jmeter.cgi">download page</a>.  </p>
 
 <section name="Access the GIT Version Controlled Source Code">
 
-<note>With Apache JMeter 5.2 the sources have been
+<note>With ?? ?????? 5.2 the sources have been
 <a href="https://www.apache.org/dev/writable-git">migrated to Git.</a>
 </note>
 
@@ -51,7 +51,7 @@ href="download_jmeter.cgi">download page</a>.  </p>
   <th>GITHUB (read-only)</th>
  </tr>
  <tr>
-  <td>Apache JMeter</td>
+  <td>?? ??????</td>
   <td><a href="https://gitbox.apache.org/repos/asf/jmeter.git">https://gitbox.apache.org/repos/asf/jmeter.git</a></td>
   <td><a href="https://github.com/apache/jmeter">https://github.com/apache/jmeter</a></td>
  </tr>
