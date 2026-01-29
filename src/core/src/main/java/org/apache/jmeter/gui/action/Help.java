@@ -97,10 +97,10 @@ public class Help extends AbstractAction {
                         + "div { padding: 10; margin: 10; }"
                         + "--></style></head>"
                         + "<body><div class='note'>"
-                        + "<h1>Problem loading help page</h1>"
-                        + "<div>Can't load url: &quot;<em>"
-                        + url.toString() + "</em>&quot;</div>"
-                        + "<div>See log for more info</div>"
+                        + "<h1>Проблема загрузки страницы поиска</h1>"
+                        + "<div>Не удается загрузить URL-адрес: &quot;<em>"
+                        + url + "</em>&quot;</div>"
+                        + "<div>Смотрите логи для получения дополнительной информации</div>"
                         + "</body>");
             }
         } else {

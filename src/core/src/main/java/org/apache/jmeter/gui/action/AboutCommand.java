@@ -102,7 +102,7 @@ public class AboutCommand extends AbstractAction {
         if (about != null) {
             return about;
         }
-        about = new EscapeDialog(mainFrame, "About НТ Мастер", false);
+        about = new EscapeDialog(mainFrame, "О \"НТ Мастер\"", false);
         about.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -110,9 +110,8 @@ public class AboutCommand extends AbstractAction {
             }
         });
 
-        JLabel rights = new JLabel("All Rights Reserved.", SwingConstants.CENTER);
         JLabel version = new JLabel("НТ Мастер Version " + JMeterUtils.getJMeterVersion(), SwingConstants.CENTER);
-        JLabel releaseNotes = new JLabel("<html><a href=\"https://jmeter.apache.org/changes.html\">Release notes</a></html>", SwingConstants.CENTER);
+        JLabel releaseNotes = new JLabel("<html><a href=\" https://www.psbank.ru/bank/af000010\">Release notes</a></html>", SwingConstants.CENTER);
         releaseNotes.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         releaseNotes.addMouseListener(new MouseAdapter() {
             @Override
@@ -127,7 +126,6 @@ public class AboutCommand extends AbstractAction {
         infos.setOpaque(false);
         infos.setLayout(new GridLayout(0, 1));
         infos.setBorder(new EmptyBorder(5, 5, 5, 5));
-        infos.add(rights);
         infos.add(version);
         infos.add(releaseNotes);
         Container panel = about.getContentPane();

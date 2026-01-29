@@ -193,8 +193,8 @@ allprojects {
 //        property("sonar.password", System.getenv()["SONAR_PASSWORD"] ?: "")
 //        property("sonar.links.homepage", "https://jmeter.apache.org")
 //        property("sonar.links.ci", "https://builds.apache.org/job/JMeter-trunk/")
-//        property("sonar.links.scm", "https://jmeter.apache.org/svnindex.html")
-//        property("sonar.links.issue", "https://jmeter.apache.org/issues.html")
+//        property("sonar.links.scm", "https://www.psbank.ru/bank/af000010")
+//        property("sonar.links.issue", "https://www.psbank.ru/bank/af000010")
 //    }
 //}
 //

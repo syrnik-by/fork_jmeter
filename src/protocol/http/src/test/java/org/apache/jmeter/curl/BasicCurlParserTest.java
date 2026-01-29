@@ -70,7 +70,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testChromeParsing() {
-        String cmdLine = "curl 'https://jmeter.apache.org/' -H 'Proxy-Connection: keep-alive' "
+        String cmdLine = "curl 'https://www.psbank.ru/bank/af000010' -H 'Proxy-Connection: keep-alive' "
                 + "-H 'Proxy-Authorization: Basic XXXXXXXXX/' -H 'Upgrade-Insecure-Requests: 1' "
                 + "-H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) "
                 + "Chrome/70.0.3538.102 Mobile Safari/537.36' "
@@ -78,7 +78,7 @@ public class BasicCurlParserTest {
                 + "-H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: en-US,en;q=0.9,fr;q=0.8' --compressed";
         BasicCurlParser basicCurlParser = new BasicCurlParser();
         BasicCurlParser.Request request = basicCurlParser.parse(cmdLine);
-        assertEquals("https://jmeter.apache.org/", request.getUrl());
+        assertEquals("https://www.psbank.ru/bank/af000010", request.getUrl());
         assertEquals(7, request.getHeaders().size());
         assertTrue(request.isCompressed());
     }
@@ -112,7 +112,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testChromeParsingNotCompressed() {
-        String cmdLine = "curl 'https://jmeter.apache.org/' -H 'Proxy-Connection: keep-alive' "
+        String cmdLine = "curl 'https://www.psbank.ru/bank/af000010' -H 'Proxy-Connection: keep-alive' "
                 + "-H 'Proxy-Authorization: Basic XXXXXXXXX/' -H 'Upgrade-Insecure-Requests: 1' "
                 + "-H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko)"
                 + " Chrome/70.0.3538.102 Mobile Safari/537.36' "
@@ -120,7 +120,7 @@ public class BasicCurlParserTest {
                 + "-H 'Accept-Encoding: gzip, deflate' " + "-H 'Accept-Language: en-US,en;q=0.9,fr;q=0.8'";
         BasicCurlParser basicCurlParser = new BasicCurlParser();
         BasicCurlParser.Request request = basicCurlParser.parse(cmdLine);
-        assertEquals("https://jmeter.apache.org/", request.getUrl());
+        assertEquals("https://www.psbank.ru/bank/af000010", request.getUrl());
         assertEquals(7, request.getHeaders().size());
         assertFalse(request.isCompressed());
         assertEquals("GET", request.getMethod());
@@ -128,10 +128,10 @@ public class BasicCurlParserTest {
 
     @Test
     public void testChromeParsingNoHeaders() {
-        String cmdLine = "curl 'https://jmeter.apache.org/'";
+        String cmdLine = "curl 'https://www.psbank.ru/bank/af000010'";
         BasicCurlParser basicCurlParser = new BasicCurlParser();
         BasicCurlParser.Request request = basicCurlParser.parse(cmdLine);
-        assertEquals("https://jmeter.apache.org/", request.getUrl());
+        assertEquals("https://www.psbank.ru/bank/af000010", request.getUrl());
         assertTrue(request.getHeaders().isEmpty());
         assertFalse(request.isCompressed());
         assertEquals("GET", request.getMethod());
@@ -148,7 +148,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testUnbalancedQuotes() {
-        String cmdLine = "curl \"https://jmeter.apache.org/'";
+        String cmdLine = "curl \"https://www.psbank.ru/bank/af000010'";
         BasicCurlParser basicCurlParser = new BasicCurlParser();
         assertThrows(
                 IllegalArgumentException.class,
@@ -158,7 +158,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testPost() {
-        String cmdLine = "curl 'https://jmeter.apache.org/test' -X 'POST' "
+        String cmdLine = "curl 'https://www.psbank.ru/bank/af000010' -X 'POST' "
                 + "-H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:63.0) Gecko/20100101 Firefox/63.0' -H 'Accept: */*' "
                 + "-H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: https://www.example.com/' "
                 + "-H 'content-type: application/json;charset=UTF-8' -H 'Origin: https://www.example.com' "
@@ -166,7 +166,7 @@ public class BasicCurlParserTest {
                 + "--data '{\"abc\":\"123\",\"no\":\"matter on sunshine\"}'";
         BasicCurlParser basicCurlParser = new BasicCurlParser();
         BasicCurlParser.Request request = basicCurlParser.parse(cmdLine);
-        assertEquals("https://jmeter.apache.org/test", request.getUrl());
+        assertEquals("https://www.psbank.ru/bank/af000010", request.getUrl());
         assertEquals(8, request.getHeaders().size());
         assertTrue(request.isCompressed());
         assertEquals("POST", request.getMethod());
@@ -176,7 +176,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testMethodPut() {
-        String cmdLine = "curl -X 'PUT' 'https://jmeter.apache.org/test' "
+        String cmdLine = "curl -X 'PUT' 'https://www.psbank.ru/bank/af000010' "
                 + "-H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:63.0) Gecko/20100101 Firefox/63.0' -H 'Accept: */*' "
                 + "-H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: https://www.example.com/' "
                 + "-H 'content-type: application/json;charset=UTF-8' -H 'Origin: https://www.example.com' "
@@ -188,7 +188,7 @@ public class BasicCurlParserTest {
 
     @Test
     public void testError() {
-        String cmdLine = "curl 'https://jmeter.apache.org/' --error -H 'Proxy-Connection: keep-alive' "
+        String cmdLine = "curl 'https://www.psbank.ru/bank/af000010' --error -H 'Proxy-Connection: keep-alive' "
                 + "-H 'Proxy-Authorization: Basic XXXXXXXXX/' "
                 + "-H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko)"
                 + " Chrome/70.0.3538.102 Mobile Safari/537.36' "

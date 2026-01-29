@@ -1,4 +1,4 @@
-![НТ Мастер logo](https://jmeter.apache.org/images/logo.svg)
+![НТ Мастер logo](resources/org/apache/jmeter/images/icon-apache.png)
 
 ## Launching НТ Мастер from Eclipse
 

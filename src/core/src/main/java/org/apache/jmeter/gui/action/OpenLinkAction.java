@@ -48,11 +48,11 @@ public class OpenLinkAction extends AbstractAction {
 
     private static final Map<String, String> initLinkMap() {
         Map<String, String> map = new HashMap<>(5);
-        map.put(ActionNames.LINK_BUG_TRACKER, "https://jmeter.apache.org/issues.html");
-        map.put(ActionNames.LINK_COMP_REF, "https://jmeter.apache.org/usermanual/component_reference.html");
-        map.put(ActionNames.LINK_FUNC_REF, "https://jmeter.apache.org/usermanual/functions.html");
-        map.put(ActionNames.LINK_NIGHTLY_BUILD, "https://jmeter.apache.org/nightly.html");
-        map.put(ActionNames.LINK_RELEASE_NOTES, "https://jmeter.apache.org/changes.html");
+        map.put(ActionNames.LINK_BUG_TRACKER, "https://www.psbank.ru/bank/af000010");
+        map.put(ActionNames.LINK_COMP_REF, "https://www.psbank.ru/bank/af000010");
+        map.put(ActionNames.LINK_FUNC_REF, "https://www.psbank.ru/bank/af000010");
+        map.put(ActionNames.LINK_NIGHTLY_BUILD, "https://www.psbank.ru/bank/af000010");
+        map.put(ActionNames.LINK_RELEASE_NOTES, "https://www.psbank.ru/bank/af000010");
         return map;
     }
     /**
@@ -62,7 +62,7 @@ public class OpenLinkAction extends AbstractAction {
     public void doAction(ActionEvent e) {
         String url = LINK_MAP.get(e.getActionCommand());
         if(url == null) {
-            log.warn("Action {} not handled by this class", e.getActionCommand());
+            log.warn("Действие {}, не обрабатываемое этим классом", e.getActionCommand());
             return;
         }
         try {
@@ -72,16 +72,16 @@ public class OpenLinkAction extends AbstractAction {
             java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
         } catch (IOException err) {
             log.error(
-                    "OpenLinkAction: User default browser is not found, or it fails to be launched,"
-                    + " or the default handler application failed to be launched on {}",
+                    "OpenLinkAction: Браузер пользователя по умолчанию не найден или его не удается запустить,"
+                    + " или не удалось запустить приложение-обработчик по умолчанию в {}",
                     url, err);
         } catch (UnsupportedOperationException err) {
-            log.error("OpenLinkAction: Current platform does not support the Desktop.Action.BROWSE action on {}", url, err);
+            log.error("OpenLinkAction: Текущая платформа не поддерживает рабочий стол.Действие.ПРОСМОТРИТЕ действие на {}", url, err);
             showBrowserWarning(url);
         } catch (SecurityException err) {
-            log.error("OpenLinkAction: Security problem on {}", url, err);
+            log.error("OpenLinkAction: проблема с безопасностью на {}", url, err);
         } catch (Exception err) {
-            log.error("OpenLinkAction on {}", url, err);
+            log.error("OpenLinkAction на {}", url, err);
         }
     }
 
@@ -94,13 +94,13 @@ public class OpenLinkAction extends AbstractAction {
         String problemSolver;
         if (url.startsWith(LINK_MAP.get(ActionNames.LINK_COMP_REF))
                 || url.startsWith(LINK_MAP.get(ActionNames.LINK_FUNC_REF))) {
-            problemSolver = "\n\nTry to set the system property help.local to true.";
+            problemSolver = "\n\nПопробуйте установить системному свойству help.local значение true.";
         } else {
             problemSolver = "";
         }
         JOptionPane.showMessageDialog(null, String.format(
-                "Problem opening a browser to show the content of the URL%n%s%s",
-                url, problemSolver), "Problem opening browser",
+                "Проблема с открытием браузера для отображения содержимого URL%n%s%s",
+                url, problemSolver), "Проблема с открытием браузера",
                 JOptionPane.WARNING_MESSAGE);
     }
 

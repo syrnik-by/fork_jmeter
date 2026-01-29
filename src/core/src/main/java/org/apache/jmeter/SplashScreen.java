@@ -64,7 +64,7 @@ public class SplashScreen extends JDialog {
         JLabel logo = new JLabel();
         logo.setBorder(new EmptyBorder(10, 10, 10, 10));
         URI svgUri = null;
-        String svgResourcePath = "/org/apache/jmeter/images/logo.svg";
+        String svgResourcePath = "/org/apache/jmeter/images/psb-logo-rus.svg";
         try {
             URL svgUrl = JMeterUtils.class.getResource(svgResourcePath);
             if (svgUrl != null) {

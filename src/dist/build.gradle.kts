@@ -629,8 +629,8 @@ fun CopySpec.docCssAndImages() {
         val releasesRepoUrl: String by project
         val mavenUsername: String by project
         val mavenPassword: String by project
-        val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
-        val MVN_PASS = System.getenv("MVN_PASS") ?: mavenPassword
+        val MVN_USER = System.getenv("MVN_USER") ?: "at-temp-user-role"
+        val MVN_PASS = System.getenv("MVN_PASS") ?: "tn9LSnYttJLmyLPk0mSz"
         val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
         publishing {

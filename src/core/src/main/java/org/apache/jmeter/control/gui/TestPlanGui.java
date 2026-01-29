@@ -31,6 +31,7 @@ import org.apache.jmeter.config.gui.ArgumentsPanel;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.TestElementMetadata;
 import org.apache.jmeter.gui.action.ActionNames;
+import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.util.FileListPanel;
 import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.gui.util.VerticalPanel;
@@ -104,7 +105,7 @@ public class TestPlanGui extends AbstractJMeterGuiComponent {
         addMenu.addSeparator();
         addMenu.add(MenuFactory.makeMenu(MenuFactory.FRAGMENTS, ActionNames.ADD));
         addMenu.add(MenuFactory.makeMenu(MenuFactory.NON_TEST_ELEMENTS, ActionNames.ADD));
-        pop.add(addMenu);
+        pop.add(addMenu);new JMeterTreeModel();
         MenuFactory.addPasteResetMenu(pop);
         MenuFactory.addFileMenu(pop, false);
         return pop;

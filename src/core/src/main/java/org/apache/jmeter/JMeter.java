@@ -366,12 +366,12 @@ public class JMeter implements JMeterPlugin {
      */
     private void startGui(String testFile) {
         System.out.println("================================================================================");//NOSONAR
-        System.out.println("Don't use GUI mode for load testing !, only for Test creation and Test debugging.");//NOSONAR
-        System.out.println("For load testing, use CLI Mode (was NON GUI):");//NOSONAR
-        System.out.println("   jmeter -n -t [jmx file] -l [results file] -e -o [Path to web report folder]");//NOSONAR
-        System.out.println("& increase Java Heap to meet your test requirements:");//NOSONAR
-        System.out.println("   Modify current env variable HEAP=\"-Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m\" in the jmeter batch file");//NOSONAR
-        System.out.println("Check : https://jmeter.apache.org/usermanual/best-practices.html");//NOSONAR
+        System.out.println("Не используйте графический режим для нагрузочного тестирования!, только для создания тестов и отладки тестов.");//NOSONAR
+        System.out.println("Для нагрузочного тестирования используйте режим CLI (без графического интерфейса пользователя).:");//NOSONAR
+        System.out.println("   jmeter -n -t [jmx file] -l [results file] -e -o [Путь к папке веб-отчета]");//NOSONAR
+        System.out.println("& увеличьте объем Java Heap в соответствии с вашими требованиями к тестированию:");//NOSONAR
+        System.out.println("   Изменить текущую переменную env HEAP=\"-Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m\" в batch файле jmeter");//NOSONAR
+        System.out.println("Cмотри : https://www.psbank.ru/bank/af000010");//NOSONAR
         System.out.println("================================================================================");//NOSONAR
 
         JMeterUIDefaults.INSTANCE.install();

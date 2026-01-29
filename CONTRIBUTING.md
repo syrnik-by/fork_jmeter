@@ -6,7 +6,7 @@ Want to show НТ Мастер some love? Help out by contributing!
 
 Log it in our bugzilla:
 
-* *<https://jmeter.apache.org/issues.html>*
+* *<https://www.psbank.ru/bank/af000010>*
 * or send a note to the *user mailing list*.
 Be sure to include all relevant information, like the versions of JMeter you’re using as long as Java version.
 A Test plan  that caused the issue as well as any error messages are also very helpful.
@@ -15,7 +15,7 @@ A Test plan  that caused the issue as well as any error messages are also very h
 
 Simply contact:
 
-* [Our users mailing list](https://jmeter.apache.org/mail2.html#JMeterUser)
+* [Our users mailing list](https://www.psbank.ru/bank/af000010)
 * or ask question on [stackoverflow](https://stackoverflow.com/questions/tagged/jmeter).
 
 ## :bar_chart: What needs to be developed
@@ -82,7 +82,7 @@ However, before sending a patch, please make sure that the following applies:
 We do love to enhance НТ Мастер with you to become more powerful!
 The best way to workout your idea is to discuss it first at our dev mailing list:
 
-* [JMeter developers mailing list](https://jmeter.apache.org/mail2.html#JMeterDev)
+* [JMeter developers mailing list](https://www.psbank.ru/bank/af000010)
 
 Please, if you can, don't just throw us the code of a new feature; lets figure first together
 what would be the best approach regarding the current architecture and future plans,

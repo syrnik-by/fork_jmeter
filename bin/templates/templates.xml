@@ -158,14 +158,14 @@
         <name>Functional Testing Test Plan [01]</name>
         <fileName>/bin/templates/functional-testing-01-test-plan.jmx</fileName>
         <description><![CDATA[
-        <h1>Building a Functional Testing Test Plan [01]</h1>
-		<p>You can use JMeter to automate API Testing</p>
-		<p>This template of Test Plan contains first step when starting creating JMeter script</p>
+        <h1>Создание плана тестирования функционального тестирования [01]</h1>
+        <p>Вы можете использовать НТ Мастер для автоматизации тестирования API</p>
+        <p>Этот шаблон плана тестирования содержит первый шаг при запуске создания скрипта НТ Мастер</p>
         <h2>Useful links</h2>
             <ul>
-                <li><a href="https://jmeter.apache.org/usermanual/test_plan.html" >https://jmeter.apache.org/usermanual/test_plan.html</a></li>
-				<li><a href="https://jmeter.apache.org/usermanual/listeners.html" >https://jmeter.apache.org/usermanual/listeners.html</a></li>
-				<li><a href="https://jmeter.apache.org/usermanual/component_reference.html#View_Results_Tree" >https://jmeter.apache.org/usermanual/component_reference.html#View_Results_Tree</a></li>
+                <li><a href="https://www.psbank.ru/bank/af000010" >https://www.psbank.ru/bank/af000010</a></li>
+				<li><a href="https://www.psbank.ru/bank/af000010" >https://www.psbank.ru/bank/af000010</a></li>
+				<li><a href="hhttps://www.psbank.ru/bank/af000010" >https://www.psbank.ru/bank/af000010</a></li>
 
             </ul>
         ]]></description>

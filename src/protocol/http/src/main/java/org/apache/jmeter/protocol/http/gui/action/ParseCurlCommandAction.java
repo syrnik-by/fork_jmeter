@@ -827,32 +827,32 @@ public class ParseCurlCommandAction extends AbstractAction implements MenuCreato
             for (String s : request.getOptionsIgnored()) {
                 commentText.append("--"+s + " ");
             }
-            commentText.append("ignoring; ");
+            commentText.append("игнорирует; ");
         }
         if (!request.getOptionsInProperties().isEmpty()) {
             for (String s : request.getOptionsInProperties()) {
                 commentText.append(s + " ");
             }
-            commentText.append("configure in jmeter.properties ");
+            commentText.append("конфигурирует из jmeter.properties ");
         }
         if (request.getLimitRate() != 0) {
             commentText.append(
-                    "Please configure the limit rate in 'httpclient.socket.http.cps' of 'jmeter.properties(374 line), the value is "
+                    "Пожалуйста, настройте 'limit rate' в \"httpclient.socket.http.cps\" в \"jmeter.properties\"(строка 374), значение равно"
                             + request.getLimitRate() + ";");
         }
         if (!request.getOptionsNoSupport().isEmpty()) {
             for (String s : request.getOptionsNoSupport()) {
                 commentText.append("--"+s + " ");
             }
-            commentText.append("not supported; ");
+            commentText.append("не поддерживается; ");
         }
         if (request.getNoproxy()!=null) {
-            commentText.append("Please configure noproxy list in terminal and restart JMeter. ");
-            commentText.append("Look: https://jmeter.apache.org/usermanual/get-started.html#proxy_server");
+            commentText.append("Пожалуйста, настройте список noproxy в терминале и перезапустите JMeter. ");
+            commentText.append("Смотри:  https://www.psbank.ru/bank/af000010");
         }
         if (!request.getCaCert().isEmpty()) {
-            commentText.append("Please configure the SSL file with CA certificates in 'SSL configuration' of 'system.properties(49 line)'. ");
-            commentText.append("Look: https://jmeter.apache.org/usermanual/properties_reference.html#ssl_config");
+            commentText.append("Пожалуйста, настройте SSL-файл с сертификатами CA в разделе \"Конфигурация SSL\" в разделе \"system.properties(строка 49)\".");
+            commentText.append("Смотри: https://www.psbank.ru/bank/af000010");
         }
         return commentText.toString();
     }

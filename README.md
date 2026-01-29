@@ -50,16 +50,16 @@ Fully featured Test IDE that allows fast Test Plan **recording**
 
 ### Command Line
 
-[Command-line mode (Non GUI / headless mode)](https://jmeter.apache.org/usermanual/get-started.html#non_gui)
+[Command-line mode (Non GUI / headless mode)](https://www.psbank.ru/bank/af000010)
 to load test from any Java compatible OS (Linux, Windows, Mac OSX, ...)
 
 ### Reporting
 
-A complete and ready to present [dynamic HTML report](https://jmeter.apache.org/usermanual/generating-dashboard.html)
+A complete and ready to present [dynamic HTML report](https://www.psbank.ru/bank/af000010)
 
 ![Dashboard screenshot](https://raw.githubusercontent.com/apache/jmeter/master/xdocs/images/screenshots/dashboard/response_time_percentiles_over_time.png)
 
-[Live reporting](https://jmeter.apache.org/usermanual/realtime-results.html)
+[Live reporting](https://www.psbank.ru/bank/af000010)
 into 3rd party databases like InfluxDB or Graphite
 
 ![Live report](https://raw.githubusercontent.com/apache/jmeter/master/xdocs/images/screenshots/grafana_dashboard.png)
@@ -67,10 +67,10 @@ into 3rd party databases like InfluxDB or Graphite
 ### Correlation
 
 Easy correlation through ability to extract data from most popular response formats,
-[HTML](https://jmeter.apache.org/usermanual/component_reference.html#CSS/JQuery_Extractor),
-[JSON](https://jmeter.apache.org/usermanual/component_reference.html#JSON_Extractor),
-[XML](https://jmeter.apache.org/usermanual/component_reference.html#XPath_Extractor) or
-[any textual format](https://jmeter.apache.org/usermanual/component_reference.html#Regular_Expression_Extractor)
+[HTML](https://www.psbank.ru/bank/af000010),
+[JSON](https://www.psbank.ru/bank/af000010),
+[XML](https://www.psbank.ru/bank/af000010) or
+[any textual format](https://www.psbank.ru/bank/af000010)
 
 ### Highly Extensible Core
 
@@ -84,7 +84,7 @@ Easy correlation through ability to extract data from most popular response form
 ## The Latest Version
 
 Details of the latest version can be found on the
-[JMeter Apache Project web site](https://jmeter.apache.org/)
+[JMeter Apache Project web site](https://www.psbank.ru/bank/af000010)
 
 ## Requirements
 
@@ -141,7 +141,7 @@ and it may be browsed starting from the file called [index.html](printable_docs/
 
 ## Reporting a bug/enhancement
 
-See [Issue Tracking](https://jmeter.apache.org/issues.html).
+See [Issue Tracking](https://www.psbank.ru/bank/af000010).
 
 ## Build instructions
 
@@ -211,7 +211,7 @@ Alternatively, you could get Gradle to start the GUI:
 ## Developer Information
 
 Building and contributing is explained in details at
-[building JMeter](https://jmeter.apache.org/building.html)
+[building JMeter](https://www.psbank.ru/bank/af000010)
 and [CONTRIBUTING.md](CONTRIBUTING.md). More information on the tasks available for
 building JMeter with Gradle is available in [gradle.md](gradle.md).
 
