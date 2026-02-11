@@ -52,6 +52,7 @@ rootProject.name = "jmeter"
 
 include(
     "src:bom",
+    "src:bom2",
     "src:bshclient",
     "src:launcher",
     "src:components",
