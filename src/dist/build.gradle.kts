@@ -27,8 +27,14 @@ import java.nio.file.Paths
 ////import com.github.vlsi.gradle.properties.dsl.props
 ////import kotlin.math.absoluteValue
 ////import org.gradle.api.internal.TaskOutputsInternal
+import de.undercouch.gradle.tasks.download.Download
+import de.undercouch.gradle.tasks.download.Verify
+import java.io.File
+import java.util.Date
+import java.text.SimpleDateFormat
 
 plugins {
+    id("de.undercouch.download") version "4.1.2"
     id("com.github.vlsi.crlf")
     // id("com.github.vlsi.stage-vote-release")
     `maven-publish`
@@ -666,6 +672,75 @@ val MVN_USER = System.getenv("MVN_USER") ?: "at-temp-user-role"
 val MVN_PASS = System.getenv("MVN_PASS") ?: "tn9LSnYttJLmyLPk0mSz"
 val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
+// Куда скачиваем ZIP
+val downloadDir = File(buildDir, "downloaded")
+val zipFile = File(downloadDir, "archive.zip")
+
+val resourcesDir = File(rootProject.rootDir, "Папка с ресурсами")
+
+tasks.register<Download>("downloadArtifactZip") {
+    description = "Скачивает ZIP файл из Nexus raw репозитория"
+
+    // URL для скачивания
+    src(urlSite)
+
+    // Куда сохраняем
+    dest(zipFile)
+
+    // Настройки для 4.1.2
+    overwrite(false)           // не качать если уже есть
+    quiet(false)              // показывать прогресс
+    connectTimeout(30000)     // 30 сек
+    readTimeout(30000)        // 30 сек
+
+    // Аутентификация
+    username(MVN_USER)
+    password(MVN_PASS)
+
+    // Умное скачивание (доступно в 4.1.2!)
+    onlyIfModified(true)
+    useETag(true)
+
+    // Создаем папку для скачивания
+    doFirst {
+        downloadDir.mkdirs()
+    }
+}
+
+tasks.register<Copy>("unzipArtifact") {
+
+    description = "Распаковывает ZIP "
+    dependsOn("downloadArtifactZip")
+    // Берем ZIP и распаковываем
+    from(zipTree(zipFile))
+    // ПРЯМО В ПАПКУ РЕСУРСОВ В КОРНЕ ПРОЕКТА
+    into(resourcesDir)
+    // Перезаписываем существующие файлы
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    // Не копируем пустые папки
+    includeEmptyDirs = false
+
+    doFirst {
+        logger.lifecycle("package Распаковка ${zipFile.name} -> ${resourcesDir.path}")
+        resourcesDir.mkdirs()
+    }
+
+    doLast {
+        logger.lifecycle("white_check_mark Распаковано в: ${resourcesDir.path}")
+        val fileCount = fileTree(resourcesDir).count()
+        logger.lifecycle("   Всего файлов: $fileCount")
+    }
+}
+
+tasks.register<Verify>("verifyDownload") {
+    description = "Проверяет целостность скачанного ZIP"
+    dependsOn("downloadArtifactZip")
+
+    src(zipFile)
+    algorithm("MD5")
+    // Если знаете чексумму - раскомментируйте:
+    // checksum("your-md5-hash-here")
+}
 
 //creates artifact to load in nexus
 tasks.register<Zip>("assembleArtifact") {
@@ -684,6 +759,50 @@ tasks.register<Zip>("assembleArtifact") {
         include("xdocs/**")
     }
     description = "Assemble distribution archive $archiveName into ${relativePath(destinationDir)}"
+}
+
+
+// Принудительная перезагрузка
+tasks.register<Download>("forceDownloadArtifact") {
+    description = "Принудительно скачивает ZIP заново"
+
+    src(urlSite)
+    dest(zipFile)
+    overwrite(true) // ПРИНУДИТЕЛЬНО перезаписываем
+    username(MVN_USER)
+    password(MVN_PASS)
+
+    doFirst {
+        logger.lifecycle("warning Принудительное скачивание: $urlSite")
+    }
+}
+
+// Очистка ресурсов
+tasks.register<Delete>("cleanResources") {
+    description = "Удаляет распакованные ресурсы"
+    delete(resourcesDir)
+}
+
+// Очистка скачанных файлов
+tasks.register<Delete>("cleanDownloads") {
+    description = "Удаляет скачанные ZIP файлы"
+    delete(downloadDir)
+}
+
+// Полный цикл подготовки
+tasks.register("prepareBundle") {
+    description = "Скачивает, проверяет и распаковывает бандл"
+    dependsOn("downloadArtifactZip", "verifyDownload", "unzipArtifact")
+    group = "bundle"
+}
+
+// Привязка к стандартным задачам
+tasks.build {
+    dependsOn("unzipArtifact")
+}
+
+tasks.clean {
+    dependsOn("cleanResources", "cleanDownloads")
 }
 
 group = "ru"
