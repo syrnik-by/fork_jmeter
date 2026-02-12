@@ -40,7 +40,7 @@ plugins {
     jacoco
     checkstyle
     id("org.jetbrains.gradle.plugin.idea-ext") apply false
-    id("org.nosphere.apache.rat")
+//    id("org.nosphere.apache.rat")
    // id("com.github.autostyle")
    // id("com.github.spotbugs")
   //  id("net.ltgt.errorprone") apply false

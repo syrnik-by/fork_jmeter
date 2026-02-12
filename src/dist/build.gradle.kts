@@ -672,17 +672,22 @@ val MVN_USER = System.getenv("MVN_USER") ?: "at-temp-user-role"
 val MVN_PASS = System.getenv("MVN_PASS") ?: "tn9LSnYttJLmyLPk0mSz"
 val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
+val resourcesDir = rootProject.rootDir
+
+val artifactGroup = "ru"
+val artifactId = "nt_master"
+val artifactVersion = project.findProperty("version") as? String ?: "1.0.0"
+val artifactFileName = "${artifactId}-${artifactVersion}.zip"
+val nexusDownloadUrl = "${urlSite}${artifactGroup}/${artifactId}/${artifactVersion}/${artifactFileName}"
+
 // Куда скачиваем ZIP
 val downloadDir = File(buildDir, "downloaded")
-val zipFile = File(downloadDir, "archive.zip")
-
-val resourcesDir = File(rootProject.rootDir, "Папка с ресурсами")
+val zipFile = File(downloadDir, artifactFileName)
 
 tasks.register<Download>("downloadArtifactZip") {
     description = "Скачивает ZIP файл из Nexus raw репозитория"
 
-    // URL для скачивания
-    src(urlSite)
+    src(nexusDownloadUrl)
 
     // Куда сохраняем
     dest(zipFile)
