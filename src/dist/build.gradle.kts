@@ -51,29 +51,29 @@ plugins {
 
 var jars = arrayOf(
     ":src:bshclient",
-    // ":src:launcher",
-    ":src:core"
-    //":src:components"
- //":src:examples",
-//":src:functions",
-//":src:jorphan",
-//":src:protocol:bolt",
-//":src:protocol:ftp",
-//":src:protocol:http",
-//":src:protocol:java",
-//":src:protocol:jdbc",
-//":src:protocol:jms",
-//":src:protocol:junit",
-//":src:protocol:ldap",
-//":src:protocol:mail",
-//":src:protocol:mongodb",
-//":src:protocol:native",
-//":src:protocol:tcp"
+    //":src:launcher",
+    ":src:core",
+    //":src:components",
+    //":src:examples",
+    //":src:functions"
+    //":src:jorphan",
+    //":src:protocol:bolt",
+    //":src:protocol:ftp",
+    //":src:protocol:http",
+    //":src:protocol:java",
+    //":src:protocol:jdbc",
+    //":src:protocol:jms",
+    //":src:protocol:junit",
+    //":src:protocol:ldap",
+    //":src:protocol:mail",
+    //":src:protocol:mongodb",
+    ":src:protocol:native"
+    //":src:protocol:tcp"
 )
 
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
-   // exclude(group = "org.apache.jmeter", module = "ApacheJMeter_core")
+    // exclude(group = "org.apache.jmeter", module = "ApacheJMeter_core")
 }
 
 var jarsDeps = arrayOf(
@@ -91,7 +91,7 @@ var jarsDeps = arrayOf(
     "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
     "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
     "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_native:5.4.3",
+    //"org.apache.jmeter:ApacheJMeter_native:5.4.3",
     "org.apache.jmeter:ApacheJMeter_tcp:5.4.3"
 )
 
@@ -125,8 +125,8 @@ dependencies {
         api(project(p))
     }
 
-    for (z in jarsDeps){
-        implementation(z){
+    for (z in jarsDeps) {
+        implementation(z) {
             exclude(group = "org.apache.jmeter", module = "ApacheJMeter_core")
         }
     }
