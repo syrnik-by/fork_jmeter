@@ -55,7 +55,7 @@ var jars = arrayOf(
     ":src:core",
     //":src:components",
     //":src:examples",
-    //":src:functions"
+    ":src:functions",
     //":src:jorphan",
     //":src:protocol:bolt",
     //":src:protocol:ftp",
@@ -79,7 +79,7 @@ configurations.runtimeClasspath {
 var jarsDeps = arrayOf(
     "org.apache.jmeter:ApacheJMeter:5.4.3",
     "org.apache.jmeter:ApacheJMeter_components:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_functions:5.4.3",
+    //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
     "org.apache.jmeter:jorphan:5.4.3",
     "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
     "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
@@ -686,13 +686,13 @@ tasks.register<Zip>("assembleArtifact") {
     description = "Assemble distribution archive $archiveName into ${relativePath(destinationDir)}"
 }
 
-group = "ru"
+group = "ru.nt_master"
 
 publishing {
     publications {
         create<MavenPublication>("maven") {
             artifact(tasks.getByName("assembleArtifact"))
-            artifactId = "nt_master"
+            //artifactId = "nt_master"
             //artifact( tasks.getByName("distTar"))
             //lib // extras //xdocs //bin
         }
