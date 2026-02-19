@@ -92,7 +92,16 @@ var jarsDeps = arrayOf(
     "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
     "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
     //"org.apache.jmeter:ApacheJMeter_native:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_tcp:5.4.3"
+    "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
+
+    //plugins before 2022.02
+    "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
+    "kg.apc:jmeter-plugins-manager:1.3",
+    "net.java.dev.jna:jna:5.5.0",
+    "org.swinglabs:jxlayer:3.0.4",
+    "com.oracle.database.jdbc:ojdbc6:11.2.0.4",
+    "org.apache.pdfbox:pdfbox:2.0.21",
+    "kg.apc:perfmon:2.2.2"
 )
 
 //
@@ -186,6 +195,7 @@ val populateLibs by tasks.registering {
         //    it.dirMode = "755".toInt(8)
         //}
         for (dep in deps) {
+            println ("-->" + dep)
             val compId = dep.id.componentIdentifier
             if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
                 // Move all non-JMeter jars to lib folder
