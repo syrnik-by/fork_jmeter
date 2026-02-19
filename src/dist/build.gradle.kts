@@ -51,11 +51,12 @@ plugins {
 
 var jars = arrayOf(
     ":src:bshclient",
-    //":src:launcher",
     ":src:core",
+    ":src:functions",
+    ":src:protocol:native"
+    //":src:launcher",
     //":src:components",
     //":src:examples",
-    ":src:functions",
     //":src:jorphan",
     //":src:protocol:bolt",
     //":src:protocol:ftp",
@@ -67,42 +68,69 @@ var jars = arrayOf(
     //":src:protocol:ldap",
     //":src:protocol:mail",
     //":src:protocol:mongodb",
-    ":src:protocol:native"
     //":src:protocol:tcp"
 )
 
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
-    // exclude(group = "org.apache.jmeter", module = "ApacheJMeter_core")
+    exclude(group = "" , module ="commons-math3")
+    exclude(group = "" , module ="commons-pool2")
+    exclude(group = "javax.jms", module = "jms")
 }
 
 var jarsDeps = arrayOf(
-    "org.apache.jmeter:ApacheJMeter:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_components:5.4.3",
-    //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
-    "org.apache.jmeter:jorphan:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_http:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_java:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_jdbc:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_jms:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_junit:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
-    //"org.apache.jmeter:ApacheJMeter_native:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
+   // "org.apache.jmeter:ApacheJMeter:5.4.3",
+   //"org.apache.jmeter:ApacheJMeter_components:5.4.3",
+   //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
+   "org.apache.jmeter:jorphan:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_http:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_java:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_jdbc:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_jms:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_junit:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
+   "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
 
-    //plugins before 2022.02
-    "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
-    "kg.apc:jmeter-plugins-manager:1.3",
+    //other deps???
     "net.java.dev.jna:jna:5.5.0",
     "org.swinglabs:jxlayer:3.0.4",
     "com.oracle.database.jdbc:ojdbc6:11.2.0.4",
     "org.apache.pdfbox:pdfbox:2.0.21",
-    "kg.apc:perfmon:2.2.2"
+    "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre8",
+    "com.rabbitmq:amqp-client:3.6.1"
 )
+
+//TODO remove doubles
+var plugins = arrayOf(
+    //plugins before 2022.02
+    "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
+    "kg.apc:jmeter-plugins-manager:1.7",
+    "kg.apc:jmeter-plugins-casutg:2.10",
+    "kg.apc:perfmon:2.2.2",
+    "kg.apc:jmeter-plugins-tst:2.5",
+    "kg.apc:cmdrunner:2.2",
+    "kg.apc:jmeter-plugins-casutg:2.10",
+    "kg.apc:jmeter-plugins-dummy:0.4",
+    "kg.apc:jmeter-plugins-functions:2.1",
+    "kg.apc:jmeter-plugins-redis:0.5",
+    "kg.apc:jmeter-plugins-synthesis:2.2",
+    "kg.apc:jmeter-plugins-xml:0.1",
+    "kg.apc:jmeter-plugins-graphs-ggl:2.0",
+    "com.blazemeter:jmeter-plugins-random-csv-data-set:0.8",
+    "com.blazemeter:jmeter-plugins-wsc:0.7",
+    "kg.apc:jmeter-plugins-ffw:2.0",
+    "kg.apc:jmeter-plugins-fifo:0.2",
+    "kg.apc:jmeter-plugins-functions:2.1",
+    "kg.apc:jmeter-plugins-graphs-basic:2.0",
+    "kg.apc:jmeter-plugins-graphs-additional:2.0",
+    "net.luminis.jmeter:jmeter-websocket-samplers:1.2.8",
+    "com.github.johrstrom:jmeter-prometheus-plugin:0.6.0"
+)
+
 
 //
 //// isCanBeConsumed = false ==> other modules must not use the configuration as a dependency
@@ -136,9 +164,25 @@ dependencies {
 
     for (z in jarsDeps) {
         implementation(z) {
-            exclude(group = "org.apache.jmeter", module = "ApacheJMeter_core")
+            //dependencies.
+            exclude(group = "org.apache.jmeter" //, module = "ApacheJMeter_core"
+            )
         }
     }
+
+    for (pl in plugins) {
+        testCompileOnly(pl) {
+            //dependencies.
+            exclude(group = "org.apache.jmeter")
+        }
+    }
+
+    implementation("org.apache.commons:commons-math3") {
+        version {
+            strictly ("3.6.1")
+        }
+    }
+
     //  allTestClasses(project(p, "testClasses"))
 
 
@@ -211,6 +255,17 @@ val populateLibs by tasks.registering {
             }.from(dep.file) {
                 // Remove version from the file name
                 rename { dep.name + "." + dep.extension }
+            }
+        }
+
+        val plugins = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
+
+        for (dep in plugins) {
+            println ("plugin --> $dep")
+            val compId = dep.id.componentIdentifier
+            if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
+                libsExt.from(dep.file)
+                continue
             }
         }
     }

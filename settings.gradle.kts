@@ -34,10 +34,16 @@ pluginManagement {
     }
     repositories {
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
+            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
         }
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
+            url = uri("https://nexus-external/repository/maven-public/")
+        }
+        maven {
+            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
+        }
+        maven {
+            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
         }
     }
 }
@@ -122,14 +128,15 @@ buildscript {
     repositories {
 
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
+            url = uri("https://nexus-external/repository/maven-public/")
         }
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
+            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
         }
         maven {
             url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
         }
+
     }
 }
 
@@ -186,14 +193,15 @@ property("localDarklaf")?.ifBlank { "../darklaf" }?.let {
 }
 dependencyResolutionManagement {
     repositories {
+
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
+            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
         }
         maven {
-            url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
+            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
         }
         maven {
-            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
+            url = uri("https://nexus-external/repository/maven-public/")
         }
     }
 }

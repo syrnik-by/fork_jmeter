@@ -1,3 +1,5 @@
+import com.github.vlsi.gradle.properties.dsl.props
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -31,7 +33,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.gradle.plugin.idea-ext:org.jetbrains.gradle.plugin.idea-ext.gradle.plugin:0.5")
 
-     //   classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
+        //   classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
         //     classpath("com.github.vlsi.crlf:com.github.vlsi.crlf.gradle.plugin:2.0.0")
     }
 }
@@ -41,16 +43,16 @@ plugins {
     checkstyle
     id("org.jetbrains.gradle.plugin.idea-ext") apply false
     //id("org.nosphere.apache.rat")
-   // id("com.github.autostyle")
-   // id("com.github.spotbugs")
-  //  id("net.ltgt.errorprone") apply false
-   // id("org.sonarqube")
+    // id("com.github.autostyle")
+    // id("com.github.spotbugs")
+    //  id("net.ltgt.errorprone") apply false
+    // id("org.sonarqube")
     id("com.github.vlsi.gradle-extensions")
-   // id("com.github.vlsi.ide")
-  //  id("com.github.vlsi.stage-vote-release")
+    // id("com.github.vlsi.ide")
+    //  id("com.github.vlsi.stage-vote-release")
     publishing
 }
-val appversion : String by project
+val appversion: String by project
 
 version = appversion
 
@@ -170,13 +172,13 @@ val skipDist by extra {
 allprojects {
 //    apply(plugin = "com.github.vlsi.gradle-extensions")
 
-   /// if (project.path != ":src") {
-   ///     tasks.register<DependencyInsightReportTask>("allDependencyInsight") {
-   ///         group = HelpTasksPlugin.HELP_GROUP
-   ///         description =
-   ///             "Shows insights where the dependency is used. For instance: allDependencyInsight --configuration compile --dependency org.jsoup:jsoup"
-   ///     }
-   /// }
+    /// if (project.path != ":src") {
+    ///     tasks.register<DependencyInsightReportTask>("allDependencyInsight") {
+    ///         group = HelpTasksPlugin.HELP_GROUP
+    ///         description =
+    ///             "Shows insights where the dependency is used. For instance: allDependencyInsight --configuration compile --dependency org.jsoup:jsoup"
+    ///     }
+    /// }
 }
 
 //sonarqube {
@@ -280,18 +282,19 @@ allprojects {
 
     repositories {
         // RAT and Autostyle dependencies
-            maven {
-                url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
-            }
-            maven {
-                url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
-            }
-            maven {
-                url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
-            }
+        maven {
+            url = uri("https://nexus-external/repository/maven-public/")
+        }
+        maven {
+            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
+        }
+
+        maven {
+            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
+        }
     }
 
-    tasks.register("printAllDependencies",DependencyReportTask::class) {}
+    tasks.register("printAllDependencies", DependencyReportTask::class) {}
 
 //    // JMeter ClassFinder parses "class.path" and tries to find jar names there,
 //    // so we should produce jars without versions names for now
@@ -619,5 +622,5 @@ allprojects {
 //                }
 //            }
         }
-   }
+    }
 }

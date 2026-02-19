@@ -17,6 +17,7 @@
  */
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 buildscript {
     dependencies {
         classpath("org.gradle.kotlin:gradle-kotlin-dsl-plugins:1.4.9")
@@ -26,34 +27,25 @@ buildscript {
 
 plugins {
     java
-   // `kotlin-dsl` apply false
-   // id("com.github.autostyle")
-}
-
-repositories {
-
-    maven {
-        url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
-    }
-    maven {
-        url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
-    }
-    maven {
-        url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
-    }
-
+    // `kotlin-dsl` apply false
+    // id("com.github.autostyle")
 }
 
 allprojects {
     repositories {
-        repositories {
-            maven {
-                url = uri("https://nexus-external.psbnk.msk.ru/repository/maven-public/")
-            }
-            maven {
-                url = uri("https://nexus-external.psbnk.msk.ru/repository/plugins.gradle.org-proxy/")
-            }
+        maven {
+            url = uri("https://nexus-external/repository/maven-public/")
         }
+        maven {
+            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
+        }
+        maven {
+            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
+        }
+        maven {
+            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
+        }
+
     }
     applyKotlinProjectConventions()
 }
