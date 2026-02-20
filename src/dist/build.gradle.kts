@@ -131,7 +131,6 @@ var plugins = arrayOf(
     "com.github.johrstrom:jmeter-prometheus-plugin:0.6.0"
 )
 
-
 //
 //// isCanBeConsumed = false ==> other modules must not use the configuration as a dependency
 val buildDocs by configurations.creating {
@@ -258,15 +257,23 @@ val populateLibs by tasks.registering {
             }
         }
 
-        val plugins = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
+        val pluginConf = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
 
-        for (dep in plugins) {
+        //only plug without transitive
+        for (dep in pluginConf) {
             println ("plugin --> $dep")
             val compId = dep.id.componentIdentifier
-            if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
-                libsExt.from(dep.file)
-                continue
+
+            if (plugins.any {  dep.toString().contains( it ) })
+                {
+                if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
+                    libsExt.from(dep.file)
+                    continue
+                }
+            } else {
+                libs.from(dep.file)
             }
+
         }
     }
 }
