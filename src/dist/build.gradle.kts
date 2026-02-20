@@ -73,27 +73,27 @@ var jars = arrayOf(
 
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
-    exclude(group = "" , module ="commons-math3")
-    exclude(group = "" , module ="commons-pool2")
+    exclude(group = "", module = "commons-math3")
+    exclude(group = "", module = "commons-pool2")
     exclude(group = "javax.jms", module = "jms")
 }
 
 var jarsDeps = arrayOf(
-   // "org.apache.jmeter:ApacheJMeter:5.4.3",
-   //"org.apache.jmeter:ApacheJMeter_components:5.4.3",
-   //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
-   "org.apache.jmeter:jorphan:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_http:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_java:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_jdbc:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_jms:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_junit:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
-   "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
+    // "org.apache.jmeter:ApacheJMeter:5.4.3",
+    //"org.apache.jmeter:ApacheJMeter_components:5.4.3",
+    //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
+    "org.apache.jmeter:jorphan:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_http:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_java:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_jdbc:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_jms:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_junit:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
 
     //other deps???
     "net.java.dev.jna:jna:5.5.0",
@@ -164,7 +164,8 @@ dependencies {
     for (z in jarsDeps) {
         implementation(z) {
             //dependencies.
-            exclude(group = "org.apache.jmeter" //, module = "ApacheJMeter_core"
+            exclude(
+                group = "org.apache.jmeter" //, module = "ApacheJMeter_core"
             )
         }
     }
@@ -178,12 +179,11 @@ dependencies {
 
     implementation("org.apache.commons:commons-math3") {
         version {
-            strictly ("3.6.1")
+            strictly("3.6.1")
         }
     }
 
     //  allTestClasses(project(p, "testClasses"))
-
 
     //  binLicense(project(":src:licenses", "binLicense"))
     //  srcLicense(project(":src:licenses", "srcLicense"))
@@ -238,7 +238,7 @@ val populateLibs by tasks.registering {
         //    it.dirMode = "755".toInt(8)
         //}
         for (dep in deps) {
-            println ("-->" + dep)
+            println("-->" + dep)
             val compId = dep.id.componentIdentifier
             if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
                 // Move all non-JMeter jars to lib folder
@@ -259,13 +259,12 @@ val populateLibs by tasks.registering {
 
         val pluginConf = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
 
-        //only plug without transitive
+        //only plugins without transitive
         for (dep in pluginConf) {
-            println ("plugin --> $dep")
+            println("plugin --> $dep")
             val compId = dep.id.componentIdentifier
 
-            if (plugins.any {  dep.toString().contains( it ) })
-                {
+            if (plugins.any { dep.toString().contains(it) }) {
                 if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
                     libsExt.from(dep.file)
                     continue
