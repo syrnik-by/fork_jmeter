@@ -73,7 +73,6 @@ var jars = arrayOf(
 
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
-    exclude(group = "", module = "commons-math3")
     exclude(group = "", module = "commons-pool2")
     exclude(group = "javax.jms", module = "jms")
 }
@@ -101,7 +100,18 @@ var jarsDeps = arrayOf(
     "com.oracle.database.jdbc:ojdbc6:11.2.0.4",
     "org.apache.pdfbox:pdfbox:2.0.21",
     "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre8",
-    "com.rabbitmq:amqp-client:3.6.1"
+    "com.rabbitmq:amqp-client:3.6.1",
+    "org.bouncycastle:bcpg-jdk15on:1.70",
+    "org.bouncycastle:bcprov-jdk15on:1.70",
+    "org.apache.commons:commons-math3:3.6.1",
+    "org.jdom:jdom2:2.0.6.1",
+    "org.javatuples:javatuples:1.2",
+    "org.glassfish.external:jsch:0.1.56",
+    "org.hdrhistogram:HdrHistogram:2.1.12",
+    "org.osgi:osgi.core:6.0.0",
+    "com.ibm.mq:com.ibm.mq.allclient:9.0.4.0",
+    "org.freeplane.bulenkov:darcula:2021.7",
+    "org.jpos:jpos:2.1.3"
 )
 
 //TODO remove doubles
@@ -109,6 +119,7 @@ var plugins = arrayOf(
     //plugins before 2022.02
     "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
     "kg.apc:jmeter-plugins-manager:1.7",
+    "kg.apc:jmeter-plugins-manager:1.4",
     "kg.apc:jmeter-plugins-casutg:2.10",
     "kg.apc:perfmon:2.2.2",
     "kg.apc:jmeter-plugins-tst:2.5",
@@ -128,7 +139,23 @@ var plugins = arrayOf(
     "kg.apc:jmeter-plugins-graphs-basic:2.0",
     "kg.apc:jmeter-plugins-graphs-additional:2.0",
     "net.luminis.jmeter:jmeter-websocket-samplers:1.2.8",
-    "com.github.johrstrom:jmeter-prometheus-plugin:0.6.0"
+    "com.github.johrstrom:jmeter-prometheus-plugin:0.6.0",
+
+    "com.blazemeter:jmeter-bzm-http2:1.4",
+    "nz.co.breakpoint:jmeter-iso8583:1.2",
+    "cloud.testload:jmeter.pack-listener:2.07",
+    "kg.apc:jmeter-plugins-common-io:0.2",
+    "kg.apc:jmeter-plugins-directory-listing:0.1",
+    "kg.apc:jmeter-plugins-autostop:0.1",
+    "kg.apc:jmeter-plugins-plancheck:2.4",
+    "kg.apc:jmeter-plugins-prmctl:0.4",
+    "kg.apc:jmeter-plugins-httpraw:0.1",
+    "kg.apc:jmeter-plugins-dbmon:0.1",
+    "kg.apc:jmeter-plugins-graphs-dist:2.0",
+    "kg.apc:jmeter-plugins-table-server:2.4",
+    "kg.apc:jmeter-plugins-cmd:2.2",
+
+    "nz.co.breakpoint:jmeter-wssecurity:1.8" // https://jarcasting.ru/artifacts/nz.co.breakpoint/jmeter-wssecurity/
 )
 
 //

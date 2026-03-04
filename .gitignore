@@ -21,6 +21,7 @@
 /reports/
 /site/
 /target/
+/**/build/
 
 !/bin/report-template/**/dist
 /bin/temp/
