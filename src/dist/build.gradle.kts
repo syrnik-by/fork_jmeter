@@ -101,17 +101,15 @@ var jarsDeps = arrayOf(
     "org.apache.pdfbox:pdfbox:2.0.21",
     "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre8",
     "com.rabbitmq:amqp-client:3.6.1",
-    "org.bouncycastle:bcpg-jdk15on:1.70",
-    "org.bouncycastle:bcprov-jdk15on:1.70",
+  //  "org.bouncycastle:bcpg-jdk15on:1.70",
+  //  "org.bouncycastle:bcprov-jdk15on:1.70",
     "org.apache.commons:commons-math3:3.6.1",
-    "org.jdom:jdom2:2.0.6.1",
     "org.javatuples:javatuples:1.2",
     "org.glassfish.external:jsch:0.1.56",
     "org.hdrhistogram:HdrHistogram:2.1.12",
     "org.osgi:osgi.core:6.0.0",
     "com.ibm.mq:com.ibm.mq.allclient:9.0.4.0",
-    "org.freeplane.bulenkov:darcula:2021.7",
-    "org.jpos:jpos:2.1.3"
+    "org.freeplane.bulenkov:darcula:2021.7"
 )
 
 //TODO remove doubles
@@ -201,12 +199,27 @@ dependencies {
         testCompileOnly(pl) {
             //dependencies.
             exclude(group = "org.apache.jmeter")
+            exclude(group = "commons-io")
+            exclude(group = "commons-collections")
+
         }
     }
 
     implementation("org.apache.commons:commons-math3") {
         version {
             strictly("3.6.1")
+        }
+    }
+
+    implementation("org.jline:jline") {
+        version {
+            strictly("3.19.0")
+        }
+    }
+
+    implementation("commons-io:commons-io") {
+        version {
+            strictly("2.8.0")
         }
     }
 
