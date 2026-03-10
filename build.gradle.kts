@@ -33,7 +33,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.gradle.plugin.idea-ext:org.jetbrains.gradle.plugin.idea-ext.gradle.plugin:0.5")
 
-        //   classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
+     //   classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
         //     classpath("com.github.vlsi.crlf:com.github.vlsi.crlf.gradle.plugin:2.0.0")
     }
 }
@@ -42,11 +42,11 @@ plugins {
     jacoco
     checkstyle
     id("org.jetbrains.gradle.plugin.idea-ext") apply false
-    //id("org.nosphere.apache.rat")
-    // id("com.github.autostyle")
-    // id("com.github.spotbugs")
-    //  id("net.ltgt.errorprone") apply false
-    // id("org.sonarqube")
+    id("org.nosphere.apache.rat")
+   // id("com.github.autostyle")
+   // id("com.github.spotbugs")
+  //  id("net.ltgt.errorprone") apply false
+   // id("org.sonarqube")
     id("com.github.vlsi.gradle-extensions")
     // id("com.github.vlsi.ide")
     //  id("com.github.vlsi.stage-vote-release")
