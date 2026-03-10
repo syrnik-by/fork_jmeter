@@ -225,7 +225,7 @@ The code can be obtained from:
 For legal and licensing information, please see the following files:
 
 - [LICENSE](LICENSE)
-- [NOTICE](NOTICE)
+- [NOTICE](NOTICE.txt)
 
 ## Cryptographic Software Notice
 
