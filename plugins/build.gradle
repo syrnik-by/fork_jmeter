@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.apache.jmeter'
+version = '1.0.0'
+
+dependencies {
+    implementation("kg.apc:jmeter-plugins-cmn-jmeter:0.7")
+    testImplementation "kg.apc:jmeter-plugins-emulators:0.4"
+}
+
+test {
+    useJUnitPlatform()
+}

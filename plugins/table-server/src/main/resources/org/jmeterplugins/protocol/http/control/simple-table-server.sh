@@ -29,7 +29,7 @@
 
 cd `dirname $0`
 
-CP=../lib/ext/ApacheJMeter_core.jar:../lib/ext/jmeter-plugins-table-server-5.0.jar
+CP=../lib/ext/ApacheJMeter_core.jar:../lib/ext/jmeter-plugins-table-server-${version}.jar
 CP=${CP}:../lib/*
 
 java -cp $CP $* org.jmeterplugins.protocol.http.control.HttpSimpleTableServer

@@ -30,7 +30,7 @@ setlocal
 
 cd /D %~dp0
 
-set CP=..\lib\ext\ApacheJMeter_core.jar;..\lib\ext\jmeter-plugins-table-server-5.0.jar
+set CP=..\lib\ext\ApacheJMeter_core.jar;..\lib\ext\jmeter-plugins-table-server-${version}.jar
 set CP=%CP%;..\lib\* 
 
 java -cp %CP% %* org.jmeterplugins.protocol.http.control.HttpSimpleTableServer

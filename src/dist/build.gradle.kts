@@ -123,7 +123,7 @@ var plugins = arrayOf(
     //plugins before 2022.02
     "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
     "kg.apc:jmeter-plugins-manager:1.7",
-    "kg.apc:jmeter-plugins-manager:1.4",
+//    "kg.apc:jmeter-plugins-manager:1.4",
     "kg.apc:jmeter-plugins-casutg:2.10",
     "kg.apc:perfmon:2.2.2",
     "kg.apc:jmeter-plugins-tst:2.5",
@@ -156,7 +156,7 @@ var plugins = arrayOf(
     "kg.apc:jmeter-plugins-httpraw:0.1",
     "kg.apc:jmeter-plugins-dbmon:0.1",
     "kg.apc:jmeter-plugins-graphs-dist:2.0",
-    "kg.apc:jmeter-plugins-table-server:2.4",
+   // "kg.apc:jmeter-plugins-table-server:2.4",
     "kg.apc:jmeter-plugins-cmd:2.2",
 
     "nz.co.breakpoint:jmeter-wssecurity:1.8" // https://jarcasting.ru/artifacts/nz.co.breakpoint/jmeter-wssecurity/
@@ -207,8 +207,12 @@ dependencies {
             exclude(group = "org.apache.jmeter")
             exclude(group = "commons-io")
             exclude(group = "commons-collections")
-
         }
+    }
+
+    api(project(":plugins:jmeter-plugins-table-server-5.0"))
+    {
+        exclude(group = "org.apache.jmeter")
     }
 
     implementation("org.apache.commons:commons-math3") {
@@ -285,6 +289,7 @@ val populateLibs by tasks.registering {
         //    it.dirMode = "755".toInt(8)
         //}
         for (dep in deps) {
+            println("-->" + dep)
             val compId = dep.id.componentIdentifier
             if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
                 // Move all non-JMeter jars to lib folder
@@ -779,15 +784,21 @@ val snapshotsRepoUrl: String by project
 val releasesRepoUrl: String by project
 val mavenUsername: String by project
 val mavenPassword: String by project
-val MVN_USER = System.getenv("MVN_USER") ?: "at-temp-user-role"
-val MVN_PASS = System.getenv("MVN_PASS") ?: "tn9LSnYttJLmyLPk0mSz"
+val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
+val MVN_PASS = System.getenv("MVN_PASS") ?: mavenPassword
 val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
 val resourcesDir = rootProject.rootDir
 
+group = "ru.nt_master"
+
+ext {
+   val artifactGroup2 =  group.toString().replace(".", "/")
+}
+
 val artifactGroup = "ru"
 val artifactId = "nt_master"
-val artifactVersion = project.findProperty("version") as? String ?: "1.0.0"
+val artifactVersion = project.findProperty("version") as? String ?:project.findProperty("appversion")
 val artifactFileName = "${artifactId}-${artifactVersion}.zip"
 val nexusDownloadUrl = "${urlSite}${artifactGroup}/${artifactId}/${artifactVersion}/${artifactFileName}"
 
@@ -877,8 +888,6 @@ tasks.register<Zip>("assembleArtifact") {
     description = "Assemble distribution archive $archiveName into ${relativePath(destinationDir)}"
 }
 
-group = "ru.nt_master"
-
 // Принудительная перезагрузка
 tasks.register<Download>("forceDownloadArtifact") {
     description = "Принудительно скачивает ZIP заново"
@@ -922,7 +931,7 @@ tasks.clean {
     dependsOn("cleanResources", "cleanDownloads")
 }
 
-group = "ru"
+
 
 publishing {
     publications {

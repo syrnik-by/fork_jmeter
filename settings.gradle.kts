@@ -205,3 +205,6 @@ dependencyResolutionManagement {
         }
     }
 }
+include("plugins")
+include("plugins:table-server")
+findProject(":plugins:table-server")?.name = "jmeter-plugins-table-server-5.0"

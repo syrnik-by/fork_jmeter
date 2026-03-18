@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group = 'kg.apc'
+//pro = "jmeter-plugins-table-server"
+version = '5.0'
+
+dependencies {
+    implementation("kg.apc:jmeter-plugins-cmn-jmeter:0.7")
+    testImplementation "kg.apc:jmeter-plugins-emulators:0.4"
+}
+
+test {
+    useJUnitPlatform()
+}
