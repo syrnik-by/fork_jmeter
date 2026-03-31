@@ -54,20 +54,25 @@ plugins {
 //    }
 //}
 
+configurations.runtimeClasspath {
+    exclude(group = "org.apache.jmeter", module = "bom")
+    exclude(group = "", module = "commons-pool2")
+    exclude(group = "javax.jms", module = "jms")
+}
 
 var jars = arrayOf(
     ":src:bshclient",
     ":src:core",
     ":src:functions",
-    ":src:protocol:native"
-    //":src:launcher",
+    ":src:protocol:native",
+    ":src:launcher"
     //":src:components",
     //":src:examples",
     //":src:jorphan",
     //":src:protocol:bolt",
     //":src:protocol:ftp",
     //":src:protocol:http",
-    //":src:protocol:java",
+   // ":src:protocol:java"
     //":src:protocol:jdbc",
     //":src:protocol:jms",
     //":src:protocol:junit",
@@ -77,15 +82,9 @@ var jars = arrayOf(
     //":src:protocol:tcp"
 )
 
-configurations.runtimeClasspath {
-    exclude(group = "org.apache.jmeter", module = "bom")
-    exclude(group = "", module = "commons-pool2")
-    exclude(group = "javax.jms", module = "jms")
-}
-
 var jarsDeps = arrayOf(
     // "org.apache.jmeter:ApacheJMeter:5.4.3",
-    //"org.apache.jmeter:ApacheJMeter_components:5.4.3",
+    "org.apache.jmeter:ApacheJMeter_components:5.4.3",
     //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
     "org.apache.jmeter:jorphan:5.4.3",
     "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
@@ -107,8 +106,8 @@ var jarsDeps = arrayOf(
     "org.apache.pdfbox:pdfbox:2.0.21",
     "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre8",
     "com.rabbitmq:amqp-client:3.6.1",
-  //  "org.bouncycastle:bcpg-jdk15on:1.70",
-  //  "org.bouncycastle:bcprov-jdk15on:1.70",
+    //  "org.bouncycastle:bcpg-jdk15on:1.70",
+    //  "org.bouncycastle:bcprov-jdk15on:1.70",
     "org.apache.commons:commons-math3:3.6.1",
     "org.javatuples:javatuples:1.2",
     "org.glassfish.external:jsch:0.1.56",
@@ -156,9 +155,10 @@ var plugins = arrayOf(
     "kg.apc:jmeter-plugins-httpraw:0.1",
     "kg.apc:jmeter-plugins-dbmon:0.1",
     "kg.apc:jmeter-plugins-graphs-dist:2.0",
-   // "kg.apc:jmeter-plugins-table-server:2.4",
+    // "kg.apc:jmeter-plugins-table-server:2.4",
     "kg.apc:jmeter-plugins-cmd:2.2",
-
+    "com.blazemeter:jmeter-parallel:0.11",
+    "kg.apc:jmeter-plugins-udp:0.4",
     "nz.co.breakpoint:jmeter-wssecurity:1.8" // https://jarcasting.ru/artifacts/nz.co.breakpoint/jmeter-wssecurity/
 )
 
@@ -291,20 +291,28 @@ val populateLibs by tasks.registering {
         for (dep in deps) {
             println("-->" + dep)
             val compId = dep.id.componentIdentifier
-            if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
+            if ((compId !is ProjectComponentIdentifier
+                        || !compId.build.isCurrentBuild)
+            ) {
+                if (!dep.name.contains("ApacheJmeter", true)) {
+                    libs.from(dep.file)
+                } else {
+                    libsExt.from(dep.file)
+                }
                 // Move all non-JMeter jars to lib folder
-                libs.from(dep.file)
                 continue
             }
             // JMeter jars are spread across $root/bin, $root/libs, and $root/libs/ext
             // for historical reasons
             when (compId.projectPath) {
-                launcherProject -> binLibs
+                launcherProject -> binLibs //main jar to run
                 jorphanProject, bshclientProject -> libs
+
                 else -> libsExt
             }.from(dep.file) {
                 // Remove version from the file name
                 rename { dep.name + "." + dep.extension }
+
             }
         }
 
@@ -431,6 +439,12 @@ val copyLibs by tasks.registering(Sync::class) {
         // Keep jars in lib/ext so developers don't have to re-install the plugins again and again
         include("ext/*.jar")
         exclude("ext/ApacheJMeter*.jar")
+    }
+    into("ext") {
+        with(libsExt)
+        from(files(generatorJar)) {
+            rename { "ApacheJMeter_generator.jar" }
+        }
     }
     into("ext") {
         with(libsExt)
@@ -793,12 +807,12 @@ val resourcesDir = rootProject.rootDir
 group = "ru.nt_master"
 
 ext {
-   val artifactGroup2 =  group.toString().replace(".", "/")
+    val artifactGroup2 = group.toString().replace(".", "/")
 }
 
 val artifactGroup = "ru"
 val artifactId = "nt_master"
-val artifactVersion = project.findProperty("version") as? String ?:project.findProperty("appversion")
+val artifactVersion = project.findProperty("version") as? String ?: project.findProperty("appversion")
 val artifactFileName = "${artifactId}-${artifactVersion}.zip"
 val nexusDownloadUrl = "${urlSite}${artifactGroup}/${artifactId}/${artifactVersion}/${artifactFileName}"
 
