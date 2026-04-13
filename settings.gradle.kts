@@ -33,17 +33,10 @@ pluginManagement {
         idv("org.sonarqube")
     }
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
         maven {
-            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/maven-public/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
+            url = uri("https://repo.cuba-platform.com/content/groups/work/")
         }
     }
 }
@@ -126,17 +119,10 @@ buildscript {
     //     }
     // }
     repositories {
-
+        mavenCentral()
         maven {
-            url = uri("https://nexus-external/repository/maven-public/")
+            url = uri("https://repo.cuba-platform.com/content/groups/work/")
         }
-        maven {
-            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
-        }
-
     }
 }
 
@@ -193,16 +179,8 @@ property("localDarklaf")?.ifBlank { "../darklaf" }?.let {
 }
 dependencyResolutionManagement {
     repositories {
-
-        maven {
-            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/maven-public/")
-        }
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 include("plugins")

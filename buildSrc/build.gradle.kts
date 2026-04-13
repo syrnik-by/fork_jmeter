@@ -33,19 +33,11 @@ plugins {
 
 allprojects {
     repositories {
+        mavenCentral()
         maven {
-            url = uri("https://nexus-external/repository/maven-public/")
+            url = uri("https://repo.cuba-platform.com/content/groups/work/")
         }
-        maven {
-            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
-        }
-
+        gradlePluginPortal()
     }
     applyKotlinProjectConventions()
 }

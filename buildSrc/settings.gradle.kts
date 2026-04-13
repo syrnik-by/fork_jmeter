@@ -22,17 +22,10 @@ pluginManagement {
         idv("com.github.autostyle")
     }
     repositories {
+        mavenCentral()
+        gradlePluginPortal()
         maven {
-            url = uri("https://nexus-external/repository/plugins.gradle.org-proxy/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/maven-public/")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.maven.apache.org-proxy")
-        }
-        maven {
-            url = uri("https://nexus-external/repository/repo.cuba-platform.com-proxy/")
+            url = uri("https://repo.cuba-platform.com/content/groups/work/")
         }
     }
 }
