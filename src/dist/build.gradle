@@ -38,7 +38,7 @@ plugins {
 apply from: 'gradle/nexus.gradle'
 apply from: 'gradle/publish.gradle'
 
-// ── Version catalog helpers ───────────────────────────────────────────────────
+// ── Version catalog helpers ──────────────────────────────────────────────
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
 def lib = { String alias ->
@@ -58,10 +58,10 @@ def gav = { String alias ->
     "${d.module.group}:${d.module.name}:${d.versionConstraint.requiredVersion}"
 }
 
-// ── Versions ──────────────────────────────────────────────────────────────────
+// ── Versions ────────────────────────────────────────────────────────────────
 def jmeterVersion = ver('jmeter')
 
-// ── resolutionStrategy ────────────────────────────────────────────────────────
+// ── resolutionStrategy ─────────────────────────────────────────────────────────────
 configurations.all {
     resolutionStrategy.eachDependency { details ->
         def g = details.requested.group
@@ -153,7 +153,7 @@ configurations.all {
     }
 }
 
-// ── Configurations (excludes) ──────────────────────────────────────────────────
+// ── Configurations (excludes) ──────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude group: 'org.apache.jmeter', module: 'bom'
     exclude group: '',                  module: 'commons-pool2'
@@ -169,7 +169,7 @@ def jars = [
     ':src:launcher'
 ]
 
-// ── Upstream JMeter JARs ───────────────────────────────────────────────────────
+// ── Upstream JMeter JARs ─────────────────────────────────────────────────────
 def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_components:${jmeterVersion}",
     "org.apache.jmeter:jorphan:${jmeterVersion}",
@@ -186,14 +186,14 @@ def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_tcp:${jmeterVersion}"
 ]
 
-// ── Extra dist JARs ───────────────────────────────────────────────────────────
+// ── Extra dist JARs ───────────────────────────────────────────────────────────────
 def extraLibs = [
     'jna', 'jxlayer', 'ojdbc6', 'pdfbox', 'mssql-jdbc',
     'rabbitmq-amqp-client', 'javatuples', 'jsch',
     'hdrhistogram', 'osgi-core', 'ibm-mq', 'darcula-bulenkov'
 ]
 
-// ── Plugin JARs ───────────────────────────────────────────────────────────────
+// ── Plugin JARs ─────────────────────────────────────────────────────────────────
 def pluginAliases = [
     'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
     'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
@@ -207,7 +207,7 @@ def pluginAliases = [
     'plugin-udp', 'plugin-wssecurity'
 ]
 
-// ── Extra configurations ───────────────────────────────────────────────────────
+// ── Extra configurations ─────────────────────────────────────────────────────
 configurations {
     buildDocs     { canBeConsumed = false }
     generatorJar  { canBeConsumed = false }
@@ -225,7 +225,7 @@ configurations {
     }
 }
 
-// ── Dependencies ──────────────────────────────────────────────────────────────
+// ── Dependencies ────────────────────────────────────────────────────────────────
 dependencies {
     implementation platform(project(':src:bom'))
 
@@ -257,7 +257,7 @@ dependencies {
     generatorJar project(path: ':src:generator', configuration: 'archives')
 }
 
-// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
+// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────────
 def libsSpec = copySpec()
 def libsExt  = copySpec()
 def binLibs  = copySpec()
@@ -337,7 +337,7 @@ def copyBinLibs = tasks.register('copyBinLibs', Copy) {
     with binLibs
 }
 
-// ── createDist ─────────────────────────────────────────────────────────────────
+// ── createDist ──────────────────────────────────────────────────────────────────
 tasks.register('createDist') {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = 'Собирает fork JAR и раскладывает их в lib/ и bin/'
@@ -379,7 +379,7 @@ tasks.register('runGui', JavaExec) {
     }
 }
 
-// ── Clean ──────────────────────────────────────────────────────────────────────
+// ── Clean ────────────────────────────────────────────────────────────────────────
 tasks.named(BasePlugin.CLEAN_TASK_NAME) {
     doLast {
         delete downloadDir
@@ -391,7 +391,7 @@ tasks.named(BasePlugin.CLEAN_TASK_NAME) {
     }
 }
 
-// ── Docs helpers ───────────────────────────────────────────────────────────────
+// ── Docs helpers ─────────────────────────────────────────────────────────────────
 def xdocs = "${rootDir}/xdocs"
 
 def docCssAndImages = { CopySpec spec ->
@@ -450,7 +450,20 @@ def binaryLayout = { CrLfSpec crlfSpec ->
     }
 }
 
-def skipDist = rootProject.extra['skipDist'] as boolean
+// ── skipDist ──────────────────────────────────────────────────────────────────────
+// rootProject.extra['skipDist'] бросал MissingPropertyException если lazy-свойство
+// в Kotlin-скрипте ещё не было вычислено. Используем безопасный доступ
+// через ExtraPropertiesExtension.has() + фоллбэк на findProperty.
+def skipDist = {
+    def ext = rootProject.extensions.extraProperties
+    if (ext.has('skipDist')) {
+        return ext.get('skipDist') as boolean
+    }
+    // Фоллбэк: читаем проектное свойство напрямую
+    def prop = rootProject.findProperty('skipDist')
+    if (prop == null) return false
+    return !(prop as String).equalsIgnoreCase('false')
+}()
 
 if (!skipDist) {
     ['binary', 'source'].each { type ->
