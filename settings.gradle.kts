@@ -43,10 +43,6 @@ pluginManagement {
     }
 }
 
-//plugins {
-//    `gradle-enterprise` version "3.4.1"
-//}
-
 // This is the name of a current project
 // Note: it cannot be inferred from the directory name as developer might clone JMeter to jmeter_tmp folder
 rootProject.name = "jmeter"
@@ -109,17 +105,7 @@ if (property("localReleasePlugins").toBool(nullAs = false, blankAs = true, defau
     includeBuild("../vlsi-release-plugins")
 }
 
-val isCiServer = System.getenv().containsKey("CI")
-
-
-// Checksum plugin sources can be validated at https://github.com/vlsi/vlsi-release-plugins
 buildscript {
-    // dependencies {
-    //     classpath("com.github.vlsi.gradle:checksum-dependency-plugin:${settings.extra["com.github.vlsi.checksum-dependency.version"]}") {
-    //         // Gradle ships kotlin-stdlib which is good enough
-    //         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-    //     }
-    // }
     repositories {
         mavenCentral()
         maven {
@@ -128,7 +114,10 @@ buildscript {
     }
 }
 
-// Note: we need to verify the checksum for checksum-dependency-plugin itself
+// Note: repositories for dependency resolution are declared in allprojects { } in root build.gradle.kts.
+// Do NOT add dependencyResolutionManagement here — it conflicts with project-level repository declarations
+// and causes BOM-managed dependencies to fail resolution (versions come up empty).
+
 val expectedSha512 = mapOf(
     "F7040C571C2A2727F2EED4EA772F5A7C5D9CB393828B7A2331F7167E467429486F5F3E9423883FE9A6D652FFB0484EAE722CDFB46D97180209BCBEEBF9C25DE3"
             to "gradle-enterprise-gradle-plugin-3.4.jar",
@@ -154,21 +143,6 @@ fun File.sha512(): String {
     return BigInteger(1, md.digest()).toString(16).toUpperCase()
 }
 
-//val violations =
-//    buildscript.configurations["classpath"]
-//        .resolve()
-//        .sortedBy { it.name }
-//        .associateWith { it.sha512() }
-//       // .filterNot { (_, sha512) -> expectedSha512.contains(sha512) }
-//        .entries
-//        .joinToString("\n  ") { (file, sha512) -> "SHA-512(${file.name}) = $sha512 ($file)" }
-//
-//if (violations.isNotBlank()) {
-//    throw GradleException("Buildscript classpath has files that were not explicitly permitted:\n  $violations")
-//}
-
-//apply(plugin = "com.github.vlsi.checksum-dependency")
-
 // This enables to try local Autostyle
 property("localAutostyle")?.ifBlank { "../autostyle" }?.let {
     println("//importing project '$it'")
@@ -179,12 +153,7 @@ property("localDarklaf")?.ifBlank { "../darklaf" }?.let {
     println("//importing project '$it'")
     includeBuild(it)
 }
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
-}
+
 include("plugins")
 include("plugins:table-server")
 findProject(":plugins:table-server")?.name = "jmeter-plugins-table-server-5.0"
