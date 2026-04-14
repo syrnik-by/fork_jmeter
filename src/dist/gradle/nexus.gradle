@@ -1,0 +1,127 @@
+/*
+ * gradle/nexus.gradle
+ *
+ * Работа с Nexus RAW bundle:
+ *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/
+ *   pushLibsBundle  — упаковать lib/ + bin/ и загрузить в Nexus RAW
+ *
+ * Credentials берутся из gradle.properties (или env MVN_USER / MVN_PASS).
+ * В gradle.properties добавить (файл в .gitignore!):
+ *   nexusRawRepoUrl=http://nexus:8081/repository/jmeter-raw/
+ *   snapshotsRepoUrl=http://nexus:8081/repository/jmeter-snapshots/
+ *   releasesRepoUrl=http://nexus:8081/repository/jmeter-releases/
+ *   mavenUsername=deployer
+ *   mavenPassword=secret
+ */
+
+import de.undercouch.gradle.tasks.download.Download
+
+// ── Credentials ───────────────────────────────────────────────────────────────
+def nexusRawRepoUrl  = project.findProperty('nexusRawRepoUrl')  ?: ''
+def mavenUsername    = project.findProperty('mavenUsername')    ?: ''
+def mavenPassword    = project.findProperty('mavenPassword')    ?: ''
+
+def MVN_USER = System.getenv('MVN_USER') ?: mavenUsername
+def MVN_PASS = System.getenv('MVN_PASS') ?: mavenPassword
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+def BUNDLE_NAME    = 'jmeter-libs.zip'
+def bundleUrl      = "${nexusRawRepoUrl}${BUNDLE_NAME}"
+
+// Expose dirs to build.gradle (used in clean task)
+ext.downloadDir    = file("${buildDir}/downloaded")
+ext.unpackedDir    = file("${buildDir}/unpacked")
+ext.bundleStageDir = file("${buildDir}/bundle-stage")
+
+def bundleFile     = file("${downloadDir}/${BUNDLE_NAME}")
+
+// ── pullLibsBundle ─────────────────────────────────────────────────────────────
+tasks.register('downloadLibsBundle', Download) {
+    description = '[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW'
+    src     bundleUrl
+    dest    bundleFile
+    overwrite       false
+    quiet           false
+    onlyIfModified  true
+    useETag         true
+    username        MVN_USER
+    password        MVN_PASS
+    connectTimeout  30_000
+    readTimeout     60_000
+    doFirst { downloadDir.mkdirs() }
+}
+
+tasks.register('unpackLibsBundle', Copy) {
+    description = '[internal] Распаковывает bundle в buildDir/unpacked'
+    dependsOn 'downloadLibsBundle'
+    from zipTree(bundleFile)
+    into unpackedDir
+    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+    includeEmptyDirs   = false
+}
+
+tasks.register('copyBundleToRoot', Copy) {
+    description = '[internal] Копирует lib/ и bin/ из unpacked в корень проекта'
+    dependsOn 'unpackLibsBundle'
+    from(unpackedDir) {
+        include 'bin/**'
+        include 'lib/**'
+    }
+    into rootDir
+    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+}
+
+tasks.register('pullLibsBundle') {
+    group       = 'bundle'
+    description = 'Скачивает bundle из Nexus RAW и раскладывает lib/ + bin/ по местам'
+    dependsOn 'downloadLibsBundle', 'unpackLibsBundle', 'copyBundleToRoot'
+    doLast { logger.lifecycle('pullLibsBundle завершён') }
+}
+
+// ── pushLibsBundle ─────────────────────────────────────────────────────────────
+tasks.register('packLibsBundle', Zip) {
+    description            = '[internal] Упаковывает текущие lib/ + bin/ в ZIP'
+    archiveFileName        = BUNDLE_NAME
+    destinationDirectory   = layout.buildDirectory.dir('bundle-stage')
+    from(rootDir) {
+        include 'bin/**'
+        include 'lib/**'
+    }
+    doFirst { bundleStageDir.mkdirs() }
+}
+
+tasks.register('pushLibsBundle') {
+    group       = 'bundle'
+    description = 'Упаковывает lib/ + bin/ и загружает bundle в Nexus RAW (перезаписывает)'
+    dependsOn   'packLibsBundle'
+    doLast {
+        def file = layout.buildDirectory.dir('bundle-stage').get().file(BUNDLE_NAME).asFile
+        assert file.exists() : "Bundle не найден: ${file.path}"
+        logger.lifecycle("Загрузка ${file.name} (${file.length() / 1024} KB) -> ${bundleUrl}")
+
+        def conn = new URL(bundleUrl).openConnection() as HttpURLConnection
+        try {
+            conn.requestMethod  = 'PUT'
+            conn.doOutput       = true
+            conn.connectTimeout = 30_000
+            conn.readTimeout    = 120_000
+            conn.setRequestProperty('Content-Type',   'application/zip')
+            conn.setRequestProperty('Content-Length', file.length().toString())
+            conn.setRequestProperty('Authorization',
+                'Basic ' + Base64.encoder.encodeToString("${MVN_USER}:${MVN_PASS}".bytes))
+
+            file.withInputStream { is -> conn.outputStream << is }
+            conn.outputStream.flush()
+
+            def code = conn.responseCode
+            if (code in 200..299) {
+                logger.lifecycle("Загрузка успешна (HTTP ${code})")
+            } else {
+                def body = conn.errorStream?.text ?: ''
+                throw new GradleException("Загрузка завершилась с ошибкой HTTP ${code}: ${body}")
+            }
+        } finally {
+            conn.disconnect()
+        }
+    }
+}

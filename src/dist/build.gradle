@@ -1,0 +1,474 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  src/dist/build.gradle  (Groovy DSL)
+//
+//  Логика разбита на три файла:
+//    gradle/nexus.gradle    — работа с Nexus RAW bundle (pull / push)
+//    gradle/publish.gradle  — maven-publish + assembleArtifact + publishAll
+//    build.gradle (этот)    — зависимости, конфигурации, populateLibs,
+//                            createDist, runGui, clean, docs-helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+import com.github.vlsi.gradle.crlf.CrLfSpec
+import com.github.vlsi.gradle.crlf.LineEndings
+
+plugins {
+    id 'java'
+    id 'de.undercouch.download' version '4.1.2'
+    id 'com.github.vlsi.crlf'
+    id 'maven-publish'
+}
+
+apply from: 'gradle/nexus.gradle'
+apply from: 'gradle/publish.gradle'
+
+// ── Version catalog helpers ───────────────────────────────────────────────────
+def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
+
+def lib = { String alias ->
+    catalog.findDependency(alias).orElseThrow {
+        new GradleException("Library alias '$alias' not found in libs version catalog")
+    }.get()
+}
+
+def ver = { String alias ->
+    catalog.findVersion(alias).orElseThrow {
+        new GradleException("Version alias '$alias' not found in libs version catalog")
+    }.requiredVersion
+}
+
+def gav = { String alias ->
+    def d = lib(alias)
+    "${d.module.group}:${d.module.name}:${d.versionConstraint.requiredVersion}"
+}
+
+// ── Versions ──────────────────────────────────────────────────────────────────
+def jmeterVersion = ver('jmeter')
+
+// ── resolutionStrategy ────────────────────────────────────────────────────────
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        def g = details.requested.group
+        def n = details.requested.name
+        if (!details.requested.version) {
+            def resolved = null
+            if      (g == 'org.codehaus.groovy')                                   resolved = ver('groovy')
+            else if (g == 'org.apache.logging.log4j')                              resolved = ver('log4j')
+            else if (g == 'org.slf4j')                                             resolved = ver('slf4j')
+            else if (g == 'com.github.weisj' && n.startsWith('darklaf-extensions')) resolved = ver('darklaf-extensions')
+            else if (g == 'com.github.weisj')                                      resolved = ver('darklaf')
+            else if (g == 'commons-collections')                                   resolved = ver('commons-collections')
+            else if (g == 'org.apache.commons' && n == 'commons-collections4')     resolved = ver('commons-collections4')
+            else if (g == 'commons-codec')                                         resolved = ver('commons-codec')
+            else if (g == 'commons-io')                                            resolved = ver('commons-io')
+            else if (g == 'commons-lang')                                          resolved = ver('commons-lang')
+            else if (g == 'org.apache.commons' && n == 'commons-lang3')            resolved = ver('commons-lang3')
+            else if (g == 'org.apache.commons' && n == 'commons-math3')            resolved = ver('commons-math3')
+            else if (g == 'org.apache.commons' && n == 'commons-text')             resolved = ver('commons-text')
+            else if (g == 'org.apache.commons' && n == 'commons-jexl')             resolved = ver('commons-jexl')
+            else if (g == 'org.apache.commons' && n == 'commons-jexl3')            resolved = ver('commons-jexl3')
+            else if (g == 'org.apache.commons' && n == 'commons-dbcp2')            resolved = ver('commons-dbcp2')
+            else if (g == 'org.apache.commons' && n == 'commons-pool2')            resolved = ver('commons-pool2')
+            else if (g == 'bsf'             && n == 'bsf')                         resolved = ver('bsf')
+            else if (g == 'com.fifesoft'    && n == 'rsyntaxtextarea')             resolved = ver('rsyntaxtextarea')
+            else if (g == 'com.formdev'     && n == 'svgSalamander')              resolved = ver('svgSalamander')
+            else if (g == 'xalan')                                                 resolved = ver('xalan')
+            else if (g == 'net.sf.saxon'    && n == 'Saxon-HE')                   resolved = ver('saxon-he')
+            else if (g == 'org.apache.xmlgraphics' && n == 'xmlgraphics-commons') resolved = ver('xmlgraphics-commons')
+            else if (g == 'org.freemarker'  && n == 'freemarker')                 resolved = ver('freemarker')
+            else if (g == 'org.jodd')                                              resolved = ver('jodd')
+            else if (g == 'org.mozilla'     && n == 'rhino')                      resolved = ver('rhino')
+            else if (g == 'xerces'          && n == 'xercesImpl')                 resolved = ver('xercesImpl')
+            else if (g == 'xml-apis'        && n == 'xml-apis')                   resolved = ver('xml-apis')
+            else if (g == 'org.apache.httpcomponents' && n == 'httpclient')        resolved = ver('httpclient')
+            else if (g == 'org.apache.httpcomponents' && n == 'httpcore')          resolved = ver('httpcore')
+            else if (g == 'org.apache.httpcomponents' && n == 'httpasyncclient')   resolved = ver('httpasyncclient')
+            else if (g == 'org.apache.httpcomponents' && n == 'httpcore-nio')      resolved = ver('httpcore-nio')
+            else if (g == 'org.apache.httpcomponents' && n == 'httpmime')          resolved = ver('httpmime')
+            else if (g == 'com.fasterxml.jackson.core' && n == 'jackson-databind') resolved = ver('jackson-databind')
+            else if (g == 'com.fasterxml.jackson.core')                            resolved = ver('jackson')
+            else if (g == 'com.github.ben-manes.caffeine' && n == 'caffeine')      resolved = ver('caffeine')
+            else if (g == 'com.miglayout')                                         resolved = ver('miglayout')
+            else if (g == 'org.apache.tika')                                       resolved = ver('tika')
+            else if (g == 'net.sf.jtidy'    && n == 'jtidy')                      resolved = ver('jtidy')
+            else if (g == 'com.thoughtworks.xstream' && n == 'xstream')           resolved = ver('xstream')
+            else if (g == 'org.jsoup'       && n == 'jsoup')                      resolved = ver('jsoup')
+            else if (g == 'oro'             && n == 'oro')                        resolved = ver('oro')
+            else if (g == 'org.apache-extras.beanshell' && n == 'bsh')            resolved = ver('bsh')
+            else if (g == 'cglib'           && n == 'cglib-nodep')               resolved = ver('cglib-nodep')
+            else if (g == 'org.bouncycastle')                                      resolved = ver('bouncycastle')
+            else if (g == 'org.brotli'      && n == 'dec')                        resolved = ver('dec')
+            else if (g == 'dnsjava'         && n == 'dnsjava')                    resolved = ver('dnsjava')
+            else if (g == 'io.burt')                                               resolved = ver('jmespath')
+            else if (g == 'com.jayway.jsonpath' && n == 'json-path')              resolved = ver('json-path')
+            else if (g == 'net.minidev')                                           resolved = ver('accessors-smart')
+            else if (g == 'com.helger'      && n == 'ph-commons')                 resolved = ver('ph-commons')
+            else if (g == 'com.helger'      && n == 'ph-css')                     resolved = ver('ph-css')
+            else if (g == 'org.apache.mina' && n == 'mina-core')                  resolved = ver('mina-core')
+            else if (g == 'org.apache.velocity' && n == 'velocity')               resolved = ver('velocity')
+            else if (g == 'org.jdom'        && n == 'jdom')                       resolved = ver('jdom')
+            else if (g == 'org.jline'       && n == 'jline')                      resolved = ver('jline')
+            else if (g == 'org.mongodb'     && n == 'mongo-java-driver')          resolved = ver('mongo-java-driver')
+            else if (g == 'org.neo4j.driver' && n == 'neo4j-java-driver')         resolved = ver('neo4j-java-driver')
+            else if (g == 'org.objenesis'   && n == 'objenesis')                  resolved = ver('objenesis')
+            else if (g == 'javax.mail'      && n == 'mail')                       resolved = ver('mail')
+            else if (g == 'org.apache.ftpserver' && n == 'ftplet-api')            resolved = ver('ftplet-api')
+            else if (g == 'org.apache.ftpserver' && n == 'ftpserver-core')        resolved = ver('ftpserver-core')
+            else if (g == 'org.apache.geronimo.specs')                             resolved = ver('geronimo-jms')
+            else if (g == 'org.apache.activemq')                                   resolved = ver('activemq')
+            else if (g == 'org.springframework')                                   resolved = ver('springframework')
+            else if (g == 'junit'           && n == 'junit')                      resolved = ver('junit4')
+            else if (g == 'org.junit.jupiter')                                     resolved = ver('junit5')
+            else if (g == 'org.junit.vintage')                                     resolved = ver('junit5')
+            else if (g == 'org.hamcrest')                                          resolved = ver('hamcrest')
+            else if (g == 'javax.activation')                                      resolved = ver('javax-activation')
+            else if (g == 'com.sun.activation')                                    resolved = ver('javax-activation')
+            else if (g == 'com.github.tomakehurst' && n == 'wiremock-jre8')       resolved = ver('wiremock-jre8')
+            else if (g == 'nl.jqno.equalsverifier' && n == 'equalsverifier')      resolved = ver('equalsverifier')
+            else if (g == 'jcharts'         && n == 'jcharts')                    resolved = ver('jcharts')
+            else if (g == 'org.hsqldb'      && n == 'hsqldb')                     resolved = ver('hsqldb')
+            else if (g == 'org.spockframework' && n == 'spock-core')              resolved = ver('spock-core')
+            else if (g == 'xmlpull'         && n == 'xmlpull')                    resolved = ver('xmlpull')
+            else if (g == 'xpp3')                                                  resolved = ver('xpp3-min')
+            else if (g == 'org.apiguardian' && n == 'apiguardian-api')            resolved = ver('apiguardian-api')
+            else if (g == 'org.ow2.asm'     && n == 'asm')                        resolved = ver('asm')
+            if (resolved) details.useVersion(resolved)
+        }
+    }
+}
+
+// ── Configurations (excludes) ──────────────────────────────────────────────────
+configurations.runtimeClasspath {
+    exclude group: 'org.apache.jmeter', module: 'bom'
+    exclude group: '',                  module: 'commons-pool2'
+    exclude group: 'javax.jms',         module: 'jms'
+}
+
+// ── Fork submodules (built from source) ───────────────────────────────────────
+def jars = [
+    ':src:bshclient',
+    ':src:core',
+    ':src:functions',
+    ':src:protocol:native',
+    ':src:launcher'
+]
+
+// ── Upstream JMeter JARs ───────────────────────────────────────────────────────
+def jarsDeps = [
+    "org.apache.jmeter:ApacheJMeter_components:${jmeterVersion}",
+    "org.apache.jmeter:jorphan:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_bolt:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_ftp:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_http:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_java:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_jdbc:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_jms:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_junit:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_ldap:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_mail:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_mongodb:${jmeterVersion}",
+    "org.apache.jmeter:ApacheJMeter_tcp:${jmeterVersion}"
+]
+
+// ── Extra dist JARs ───────────────────────────────────────────────────────────
+def extraLibs = [
+    'jna', 'jxlayer', 'ojdbc6', 'pdfbox', 'mssql-jdbc',
+    'rabbitmq-amqp-client', 'javatuples', 'jsch',
+    'hdrhistogram', 'osgi-core', 'ibm-mq', 'darcula-bulenkov'
+]
+
+// ── Plugin JARs ───────────────────────────────────────────────────────────────
+def pluginAliases = [
+    'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
+    'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
+    'plugin-redis', 'plugin-synthesis', 'plugin-xml', 'plugin-graphs-ggl',
+    'plugin-bzm-csv', 'plugin-bzm-wsc', 'plugin-ffw', 'plugin-fifo',
+    'plugin-graphs-basic', 'plugin-graphs-additional', 'plugin-websocket',
+    'plugin-prometheus', 'plugin-bzm-http2', 'plugin-iso8583',
+    'plugin-pack-listener', 'plugin-common-io', 'plugin-dir-listing',
+    'plugin-autostop', 'plugin-plancheck', 'plugin-prmctl', 'plugin-httpraw',
+    'plugin-dbmon', 'plugin-graphs-dist', 'plugin-cmd', 'plugin-bzm-parallel',
+    'plugin-udp', 'plugin-wssecurity'
+]
+
+// ── Extra configurations ───────────────────────────────────────────────────────
+configurations {
+    buildDocs     { canBeConsumed = false }
+    generatorJar  { canBeConsumed = false }
+    binLicense    { canBeConsumed = false }
+    allTestClasses {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+    pluginClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+        exclude group: 'org.apache.jmeter'
+        exclude group: 'commons-io'
+        exclude group: 'commons-collections'
+    }
+}
+
+// ── Dependencies ──────────────────────────────────────────────────────────────
+dependencies {
+    implementation platform(project(':src:bom'))
+
+    jars.each { p -> implementation project(p) }
+
+    jarsDeps.each { z ->
+        implementation(z) {
+            exclude group: 'org.apache.jmeter'
+        }
+    }
+
+    extraLibs.each { alias ->
+        implementation(gav(alias)) {
+            exclude group: 'org.apache.jmeter'
+        }
+    }
+
+    pluginAliases.each { alias -> pluginClasspath gav(alias) }
+
+    implementation(project(':plugins:jmeter-plugins-table-server-5.0')) {
+        exclude group: 'org.apache.jmeter'
+    }
+
+    // Strict version pinning
+    implementation(gav('commons-math3')) { version { strictly ver('commons-math3') } }
+    implementation(gav('jline'))         { version { strictly ver('jline') } }
+    implementation(gav('commons-io'))    { version { strictly ver('commons-io') } }
+
+    generatorJar project(path: ':src:generator', configuration: 'archives')
+}
+
+// ── pluginModuleIds (lazy) ─────────────────────────────────────────────────────
+@Lazy
+def pluginModuleIds = {
+    pluginAliases.collect { alias ->
+        def d = lib(alias)
+        "${d.module.group}:${d.module.name}"
+    }.toSet()
+}()
+
+// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
+def libsSpec = copySpec()
+def libsExt  = copySpec()
+def binLibs  = copySpec()
+
+def populateLibs = tasks.register('populateLibs') {
+    dependsOn configurations.runtimeClasspath
+    doLast {
+        def launcherProject  = project(':src:launcher').path
+        def bshclientProject = project(':src:bshclient').path
+        def jorphanProject   = ':src:jorphan'
+
+        def pluginIds = configurations.pluginClasspath
+            .resolvedConfiguration.resolvedArtifacts
+            .collect { "${it.moduleVersion.id.group}:${it.moduleVersion.id.name}" }
+            .toSet()
+
+        configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts.each { dep ->
+            def compId = dep.id.componentIdentifier
+            if (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild()) {
+                def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+                if (moduleId in pluginIds) libsExt.from(dep.file)
+                else                       libsSpec.from(dep.file)
+                return
+            }
+            def target
+            switch (compId.projectPath) {
+                case launcherProject:   target = binLibs;  break
+                case jorphanProject:
+                case bshclientProject:  target = libsSpec; break
+                default:                target = libsExt;  break
+            }
+            target.from(dep.file) { rename { dep.name + '.' + dep.extension } }
+        }
+
+        configurations.pluginClasspath.resolvedConfiguration.resolvedArtifacts.each { dep ->
+            def compId   = dep.id.componentIdentifier
+            def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+            if (moduleId in pluginIds && (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild())) {
+                libsExt.from(dep.file)
+            } else if (!(moduleId in pluginIds)) {
+                libsSpec.from(dep.file)
+            }
+        }
+    }
+}
+
+libsSpec.from(populateLibs)
+libsExt.from(populateLibs)
+binLibs.from(populateLibs)
+
+// ── copyLibs / copyBinLibs ─────────────────────────────────────────────────────
+def copyLibs = tasks.register('copyLibs', Sync) {
+    rootSpec.into("${rootDir}/lib")
+    with libsSpec
+    preserve {
+        include '**/*.txt'
+        include 'ext/*.jar'
+        exclude 'ext/ApacheJMeter*.jar'
+    }
+    into('ext') {
+        with libsExt
+        from(files(configurations.generatorJar)) {
+            rename { 'ApacheJMeter_generator.jar' }
+        }
+    }
+}
+
+def copyBinLibs = tasks.register('copyBinLibs', Copy) {
+    rootSpec.into("${rootDir}/bin")
+    with binLibs
+}
+
+// ── createDist ─────────────────────────────────────────────────────────────────
+tasks.register('createDist') {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = 'Собирает fork JAR и раскладывает их в lib/ и bin/'
+    dependsOn copyLibs, copyBinLibs
+}
+
+// ── runGui ────────────────────────────────────────────────────────────────────
+tasks.register('runGui', JavaExec) {
+    group = 'Development'
+    description = 'Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI'
+    dependsOn 'pullLibsBundle', 'createDist'
+    workingDir = file("${project.rootDir}/bin")
+    main       = 'org.apache.jmeter.NewDriver'
+    classpath  "${rootDir}/bin/ApacheJMeter.jar"
+    jvmArgs '-Xss256k', '-XX:MaxMetaspaceSize=256m'
+
+    def osName = System.getProperty('os.name')
+    if (osName ==~ /(?i).*mac os x.*|.*darwin.*|.*osx.*/) {
+        jvmArgs(
+            "-Xdock:name=JMeter",
+            "-Xdock:icon=${rootDir}/xdocs/images/jmeter_square.png",
+            '-Dapple.laf.useScreenMenuBar=true',
+            '-Dapple.eawt.quitStrategy=CLOSE_ALL_WINDOWS'
+        )
+    }
+
+    def passProperty = { String name, String defVal = null ->
+        def val = System.getProperty(name) ?: defVal
+        if (val) systemProperty name, val
+    }
+    passProperty 'java.awt.headless'
+
+    System.getProperties().propertyNames().each { String name ->
+        if (name.startsWith('jmeter.') || name.startsWith('darklaf.')) passProperty name
+        if (name == 'darklaf.native') {
+            systemProperty 'darklaf.decorations',    'true'
+            systemProperty 'darklaf.allowNativeCode', 'true'
+        }
+    }
+}
+
+// ── Clean ──────────────────────────────────────────────────────────────────────
+tasks.named(BasePlugin.CLEAN_TASK_NAME) {
+    doLast {
+        delete downloadDir
+        delete unpackedDir
+        delete bundleStageDir
+        delete fileTree("${rootDir}/lib")     { include '*.jar' }
+        delete fileTree("${rootDir}/lib/ext") { include '*.jar' }
+        delete fileTree("${rootDir}/bin")     { include 'ApacheJMeter.jar' }
+    }
+}
+
+// ── Docs helpers ───────────────────────────────────────────────────────────────
+def xdocs = "${rootDir}/xdocs"
+
+def docCssAndImages = { CopySpec spec ->
+    spec.from(xdocs) {
+        include '.htaccess'
+        include 'css/**'
+        include 'images/**'
+    }
+}
+
+def printableDocumentation = { CopySpec spec ->
+    spec.into('docs') { docCssAndImages(delegate) }
+}
+
+def excludeLicenseFromSourceRelease = { CopySpec spec ->
+    spec.exclude 'licenses/**'
+    spec.exclude 'LICENSE'
+}
+
+def distributionGroup = 'distribution'
+def baseFolder = "apache-jmeter-${rootProject.version}"
+
+def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = 'Генерирует агрегированный Javadoc для всех fork-модулей'
+    def sourceSets = jars.collect { project(it).sourceSets.main }
+    classpath = files(sourceSets.collect { ss -> ss.collect { it.output + it.compileClasspath } })
+    source(sourceSets.collect { ss -> ss.collect { it.allJava } })
+    destinationDir = file("${buildDir}/docs/javadocAggregate")
+}
+
+def javadocsSpec = copySpec { from(javadocAggregate) }
+
+def binaryLayout = { CrLfSpec crlfSpec ->
+    crlfSpec.copySpec {
+        into(baseFolder) {
+            from files(configurations.binLicense)
+            from(rootDir) {
+                exclude 'bin/testfiles'
+                exclude 'bin/rmi_keystore.jks'
+                include 'bin/**'
+                include 'lib/ext/**'
+                include 'lib/junit/**'
+                include 'extras/**'
+                include 'README.md'
+                excludeLicenseFromSourceRelease(delegate)
+            }
+            into('bin') { with binLibs }
+            into('lib') {
+                with libsSpec
+                into('ext') { with libsExt }
+            }
+            printableDocumentation(delegate)
+            into('docs/api') { with javadocsSpec }
+        }
+    }
+}
+
+def skipDist = rootProject.extra['skipDist'] as boolean
+
+if (!skipDist) {
+    ['binary', 'source'].each { type ->
+        [Zip, Tar].each { archiveClass ->
+            def taskName = "dist${archiveClass.simpleName}${type == 'binary' ? '' : type.capitalize()}"
+            tasks.register(taskName, archiveClass) {
+                dependsOn createDist
+                def eol = (archiveClass == Tar) ? LineEndings.LF : LineEndings.CRLF
+                group = distributionGroup
+                description = "Создаёт $type дистрибутив"
+                if (it instanceof Tar) compression = Compression.GZIP
+                archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
+                archiveVersion  = ''
+                def spec = new CrLfSpec(eol)
+                with binaryLayout(spec)
+            }
+        }
+    }
+}
