@@ -85,14 +85,21 @@ allprojects {
 }
 
 // Wire BOM to every Java subproject that is NOT the BOM itself.
-// This ensures version constraints reach :src:core, :src:functions, etc.
-// without requiring each build.gradle.kts to repeat api(platform(project(":src:bom"))).
+//
+// IMPORTANT: use "api" (not "implementation") for the platform dependency.
+// "implementation" platform constraints are NOT exported to consumers:
+//   :src:dist depends on :src:core, and when resolving :src:dist's runtimeClasspath
+//   Gradle sees :src:core's transitive deps (e.g. bsf:bsf) — but the version
+//   constraints from :src:core's "implementation" platform are invisible at that
+//   point, resulting in "Could not find bsf:bsf:." (empty version).
+// "api" platform exports the constraints transitively so any consumer of :src:core
+//   also benefits from the BOM version pins.
 subprojects {
     val bomProject = ":src:bom"
     if (path != bomProject) {
         plugins.withType<JavaPlugin> {
             dependencies {
-                add("implementation", platform(project(bomProject)))
+                add("api", platform(project(bomProject)))
             }
         }
     }
