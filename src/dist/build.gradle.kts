@@ -161,7 +161,7 @@ dependencies {
 
     // Fork submodules
     for (p in jars) {
-        api(project(p))
+        implementation(project(p))
     }
 
     // Upstream JMeter JARs
@@ -187,7 +187,7 @@ dependencies {
         }
     }
 
-    api(project(":plugins:jmeter-plugins-table-server-5.0")) {
+    implementation(project(":plugins:jmeter-plugins-table-server-5.0")) {
         exclude(group = "org.apache.jmeter")
     }
 
