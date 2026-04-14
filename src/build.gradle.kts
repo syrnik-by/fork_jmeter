@@ -30,8 +30,6 @@ val skipMavenPublication = setOf(
 
 fun Project.boolProp(name: String) =
     findProperty(name)
-        // Project properties include tasks, extensions, etc, and we want only String properties
-        // We don't want to use "task" as a boolean property
         ?.let { it as? String }
         ?.equals("false", ignoreCase = true)?.not()
 
@@ -57,33 +55,33 @@ subprojects {
     apply<JacocoPlugin>()
 
     dependencies {
-        val api by configurations
-        api(platform(project(":src:bom")))
+        // IMPORTANT: use add("api", ...) — NOT 'val api by configurations; api(...)'
+        // The latter captures Configuration as a local variable and calling it as a function
+        // does NOT add the dependency (it invokes Configuration.invoke which is a no-op here).
+        // Only add() / the typed DSL accessors actually register the platform constraint.
+        add("api", platform(project(":src:bom")))
 
         if (!testsPresent) {
-            // No tests => no dependencies required
             return@dependencies
         }
-        val testImplementation by configurations
-        val testRuntimeOnly by configurations
-        testImplementation("org.junit.jupiter:junit-jupiter-api")
-        testImplementation("org.junit.jupiter:junit-jupiter-params")
-        testImplementation("org.hamcrest:hamcrest")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-        testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
-        testImplementation("junit:junit")
-        testImplementation(testFixtures(project(":src:testkit")))
+        add("testImplementation", "org.junit.jupiter:junit-jupiter-api")
+        add("testImplementation", "org.junit.jupiter:junit-jupiter-params")
+        add("testImplementation", "org.hamcrest:hamcrest")
+        add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine")
+        add("testRuntimeOnly", "org.junit.vintage:junit-vintage-engine")
+        add("testImplementation", "junit:junit")
+        add("testImplementation", testFixtures(project(":src:testkit")))
         if (groovyUsed) {
-            testImplementation("org.spockframework:spock-core")
+            add("testImplementation", "org.spockframework:spock-core")
         }
-        testRuntimeOnly("cglib:cglib-nodep") {
+        add("testRuntimeOnly", "cglib:cglib-nodep") {
             because("""
                 org.spockframework.mock.CannotCreateMockException: Cannot create mock for
                  class org.apache.jmeter.report.processor.AbstractSummaryConsumer${'$'}SummaryInfo.
                  Mocking of non-interface types requires a code generation library.
                  Please put an up-to-date version of byte-buddy or cglib-nodep on the class path.""".trimIndent())
         }
-        testRuntimeOnly("org.objenesis:objenesis") {
+        add("testRuntimeOnly", "org.objenesis:objenesis") {
             because("""
                 org.spockframework.mock.CannotCreateMockException: Cannot create mock for
                  class org.apache.jmeter.report.core.Sample. To solve this problem,
@@ -92,10 +90,6 @@ subprojects {
                  an object of the mocked type.""".trimIndent())
         }
     }
-
-    // Note: jars below do not normalize line endings.
-    // Those jars, however are not included to source/binary distributions
-    // so the normailzation is not that //important
 
     val sourcesJar by tasks.registering(Jar::class) {
         val sourceSets: SourceSetContainer by project
@@ -109,19 +103,16 @@ subprojects {
     }
 
     val testClasses by configurations.creating {
-        // testRuntime was removed in Gradle 7, replaced by testRuntimeClasspath
         extendsFrom(configurations["testRuntimeClasspath"])
     }
 
     if (testsPresent) {
-        // Do not generate test jars when src/test folder is missing (e.g. "config.jar")
         val testJar by tasks.registering(Jar::class) {
             val sourceSets: SourceSetContainer by project
             archiveClassifier.set("test")
             from(sourceSets["test"].output)
         }
 
-        // Parenthesis needed to use Project#getArtifacts
         (artifacts) {
             testClasses(testJar)
         }
@@ -137,9 +128,6 @@ subprojects {
     if (project.path in skipMavenPublication) {
         return@subprojects
     }
-    // See https://stackoverflow.com/a/53661897/1261287
-    // Subprojects can't use "publishing" since that accessor is not available at parent project
-    // evaluation time
 
     configure<PublishingExtension> {
         publications {
@@ -149,15 +137,10 @@ subprojects {
                 from(components["java"])
 
                 if (!skipJavadoc) {
-                    // Eager task creation is required due to
-                    // https://github.com/gradle/gradle/issues/6246
                     artifact(sourcesJar.get())
                     artifact(javadocJar.get())
                 }
 
-                // Use the resolved versions in pom.xml
-                // Gradle might have different resolution rules, so we set the versions
-                // that were used in Gradle build/test.
                 versionMapping {
                     usage(Usage.JAVA_RUNTIME) {
                         fromResolutionResult()
@@ -171,9 +154,7 @@ subprojects {
                     withXml {
                         val sb = asString()
                         var s = sb.toString()
-                        // <scope>compile</scope> is Maven default, so delete it
                         s = s.replace("<scope>compile</scope>", "")
-                        // Cut <dependencyManagement> because all dependencies have the resolved versions
                         s = s.replace(
                             Regex(
                                 "<dependencyManagement>.*?</dependencyManagement>",
@@ -183,7 +164,6 @@ subprojects {
                         )
                         sb.setLength(0)
                         sb.append(s)
-                        // Re-format the XML
                         asNode()
                     }
                     name.set("НТ Мастер ${project.name.capitalize()}")
@@ -197,16 +177,6 @@ subprojects {
                             comments.set("A business-friendly OSS license")
                         }
                     }
-                //    issueManagement {
-                //        system.set("bugzilla")
-                //        url.set("https://bz.apache.org/bugzilla/describecomponents.cgi?product=JMeter")
-                //    }
-                //   scm {
-                //       connection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
-                //       developerConnection.set("scm:git:https://gitbox.apache.org/repos/asf/jmeter.git")
-                //       url.set("https://github.com/apache/jmeter")
-                //       tag.set("HEAD")
-                //   }
                 }
             }
         }
