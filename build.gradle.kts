@@ -16,25 +16,9 @@ import com.github.vlsi.gradle.properties.dsl.props
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-////import com.github.spotbugs.snom.SpotBugsTask
-////import com.github.vlsi.gradle.crlf.CrLfSpec
-////import com.github.vlsi.gradle.crlf.LineEndings
-////import com.github.vlsi.gradle.crlf.filter
-////import com.github.vlsi.gradle.git.FindGitAttributes
-////import com.github.vlsi.gradle.git.dsl.gitignore
-////import com.github.vlsi.gradle.properties.dsl.lastEditYear
-////import com.github.vlsi.gradle.properties.dsl.props
-////import com.github.vlsi.gradle.release.RepositoryType
-////import net.ltgt.gradle.errorprone.errorprone
-////import org.ajoberstar.grgit.Grgit
-////import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-////import org.sonarqube.gradle.SonarQubeProperties
 buildscript {
     dependencies {
         classpath("org.jetbrains.gradle.plugin.idea-ext:org.jetbrains.gradle.plugin.idea-ext.gradle.plugin:0.5")
-
-     //   classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
-        //     classpath("com.github.vlsi.crlf:com.github.vlsi.crlf.gradle.plugin:2.0.0")
     }
 }
 plugins {
@@ -43,13 +27,7 @@ plugins {
     checkstyle
     id("org.jetbrains.gradle.plugin.idea-ext") apply false
     id("org.nosphere.apache.rat")
-   // id("com.github.autostyle")
-   // id("com.github.spotbugs")
-  //  id("net.ltgt.errorprone") apply false
-   // id("org.sonarqube")
     id("com.github.vlsi.gradle-extensions")
-    // id("com.github.vlsi.ide")
-    //  id("com.github.vlsi.stage-vote-release")
     publishing
 }
 val appversion: String by project
@@ -74,7 +52,6 @@ allprojects {
     version = rootProject.version
 
     repositories {
-        // RAT and Autostyle dependencies
         mavenCentral()
         maven {
             url = uri("https://repo.cuba-platform.com/content/groups/work/")
@@ -84,14 +61,11 @@ allprojects {
     tasks.register("printAllDependencies", DependencyReportTask::class) {}
 
     plugins.withType<JavaPlugin> {
-        // This block is executed right after `java` plugin is added to a project
         java {
             sourceCompatibility = JavaVersion.VERSION_1_8
         }
 
         tasks {
-            // Fix: set UTF-8 encoding for all Java compilation tasks so that
-            // Cyrillic literals in source files are not misinterpreted as windows-1252
             withType<JavaCompile>().configureEach {
                 options.encoding = "UTF-8"
             }
@@ -105,6 +79,20 @@ allprojects {
                     attributes["Implementation-Vendor-Id"] = "org.apache"
                     attributes["Implementation-Version"] = rootProject.version
                 }
+            }
+        }
+    }
+}
+
+// Wire BOM to every Java subproject that is NOT the BOM itself.
+// This ensures version constraints reach :src:core, :src:functions, etc.
+// without requiring each build.gradle.kts to repeat api(platform(project(":src:bom"))).
+subprojects {
+    val bomProject = ":src:bom"
+    if (path != bomProject) {
+        plugins.withType<JavaPlugin> {
+            dependencies {
+                add("implementation", platform(project(bomProject)))
             }
         }
     }
