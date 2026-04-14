@@ -252,6 +252,16 @@ val allTestClasses by configurations.creating {
     isCanBeResolved = false
 }
 
+// Resolvable configuration for plugin JARs that go into lib/ext.
+// Unlike testCompileOnly (canBeResolved=false), this one can be resolved.
+val pluginClasspath by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    exclude(group = "org.apache.jmeter")
+    exclude(group = "commons-io")
+    exclude(group = "commons-collections")
+}
+
 // ── Dependencies ──────────────────────────────────────────────────────────────
 dependencies {
     // BOM — provides version constraints for all managed libs
@@ -276,13 +286,9 @@ dependencies {
         }
     }
 
-    // Plugin JARs → lib/ext (testCompileOnly so they don't pollute runtimeClasspath)
+    // Plugin JARs → lib/ext (declared in pluginClasspath — resolvable)
     for (alias in pluginAliases) {
-        testCompileOnly(gav(alias)) {
-            exclude(group = "org.apache.jmeter")
-            exclude(group = "commons-io")
-            exclude(group = "commons-collections")
-        }
+        pluginClasspath(gav(alias))
     }
 
     implementation(project(":plugins:jmeter-plugins-table-server-5.0")) {
@@ -350,8 +356,8 @@ val populateLibs by tasks.registering {
             }
         }
 
-        // Plugin JARs: match by "group:name" (version-independent)
-        val pluginConf = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
+        // Plugin JARs: resolved via pluginClasspath (canBeResolved=true)
+        val pluginConf = pluginClasspath.resolvedConfiguration.resolvedArtifacts
         for (dep in pluginConf) {
             println("plugin --> $dep")
             val compId = dep.id.componentIdentifier
