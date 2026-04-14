@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
+plugins {
+    `java-library`
+}
+
 dependencies {
+    // Explicit BOM import — same reason as in src/core/build.gradle.kts
+    api(platform(project(":src:bom")))
+
     api(project(":src:components"))
     testImplementation(project(":src:core", "testClasses"))
 
