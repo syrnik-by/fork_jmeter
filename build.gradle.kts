@@ -94,10 +94,16 @@ allprojects {
 //   point, resulting in "Could not find bsf:bsf:." (empty version).
 // "api" platform exports the constraints transitively so any consumer of :src:core
 //   also benefits from the BOM version pins.
+//
+// Use plugins.withId("java-library") instead of plugins.withType<JavaPlugin> to
+// ensure the "api" configuration is fully registered before we try to use it.
+// plugins.withType<JavaPlugin> fires as soon as JavaPlugin is added to the container,
+// which can be before java-library finishes registering the "api" configuration —
+// causing "Configuration with name 'api' not found".
 subprojects {
     val bomProject = ":src:bom"
     if (path != bomProject) {
-        plugins.withType<JavaPlugin> {
+        plugins.withId("java-library") {
             dependencies {
                 add("api", platform(project(bomProject)))
             }
