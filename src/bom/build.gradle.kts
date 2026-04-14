@@ -22,16 +22,14 @@ plugins {
 val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 /**
- * Resolves a library alias from the version catalog and returns "group:artifact:version".
+ * Resolves a library alias from the version catalog.
+ * Returns the MinimalExternalModuleDependency which carries group:artifact:version.
  * Throws a clear error if the alias is not found.
  */
-fun lib(alias: String): String {
-    val provider = catalog.findLibrary(alias).orElseThrow {
+fun lib(alias: String): MinimalExternalModuleDependency =
+    catalog.findLibrary(alias).orElseThrow {
         GradleException("Library alias '$alias' not found in libs version catalog")
-    }
-    val dep = provider.get()
-    return "${dep.module.group}:${dep.module.name}:${dep.versionConstraint.requiredVersion}"
-}
+    }.get()
 
 // Note: Gradle allows to declare dependency on "bom" as "api",
 // and it makes the constraints to be transitively visible
