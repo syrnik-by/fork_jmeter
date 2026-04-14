@@ -20,7 +20,9 @@ plugins {
 }
 
 val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
-fun String.v(): String = catalog.findVersion(this).get().requiredVersion
+fun String.v(): String = catalog.findVersion(this).orElseThrow {
+    GradleException("Version '$this' not found in libs version catalog")
+}.requiredVersion
 
 // Note: Gradle allows to declare dependency on "bom" as "api",
 // and it makes the contraints to be transitively visible
