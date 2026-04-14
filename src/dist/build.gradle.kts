@@ -41,6 +41,9 @@ fun ver(alias: String): String =
         GradleException("Version alias '$alias' not found in libs version catalog")
     }.requiredVersion
 
+/** Returns "group:name:version" string for use where Provider<*> notation doesn't support lambdas */
+fun gav(alias: String): String = lib(alias).run { "${module.group}:${module.name}:${versionConstraint.requiredVersion}" }
+
 // ── Configurations ────────────────────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
@@ -186,14 +189,15 @@ dependencies {
         exclude(group = "org.apache.jmeter")
     }
 
-    // Strict version pinning for libs where BOM constraint is not enough
-    implementation(lib("commons-math3")) {
+    // Strict version pinning: use String notation "g:a:v" so the { version{} } lambda
+    // resolves unambiguously to DependencyHandler.implementation(String, Action<...>)
+    implementation(gav("commons-math3")) {
         version { strictly(ver("commons-math3")) }
     }
-    implementation(lib("jline")) {
+    implementation(gav("jline")) {
         version { strictly(ver("jline")) }
     }
-    implementation(lib("commons-io")) {
+    implementation(gav("commons-io")) {
         version { strictly(ver("commons-io")) }
     }
 
@@ -246,7 +250,7 @@ val populateLibs by tasks.registering {
             }
         }
 
-        // Plugin JARs: match by "group:name" (no version needed)
+        // Plugin JARs: match by "group:name" (version-independent)
         val pluginConf = configurations.testCompileOnly.get().resolvedConfiguration.resolvedArtifacts
         for (dep in pluginConf) {
             println("plugin --> $dep")
