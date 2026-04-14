@@ -47,15 +47,281 @@ fun ver(alias: String): String =
 /** Returns "group:name:version" string for use where Provider<*> notation doesn't support lambdas */
 fun gav(alias: String): String = lib(alias).run { "${module.group}:${module.name}:${versionConstraint.requiredVersion}" }
 
+// ── Versions ──────────────────────────────────────────────────────────────────
+val jmeterVersion = ver("jmeter")
+
+// ── Version map for resolutionStrategy: group:name → version ────────────────────────
+// This covers ALL transitive unversioned deps that come from :src:core / :src:functions
+// via their api/runtimeOnly declarations. The BOM platform() only covers direct deps;
+// resolutionStrategy.eachDependency covers the entire graph including transitive.
+val versionMap: Map<Pair<String, String>, String> by lazy {
+    listOf(
+        "bsf" to "bsf",
+        "rsyntaxtextarea" to "rsyntaxtextarea",
+        "log4j-1-2-api" to "log4j",
+        "log4j-api" to "log4j",
+        "log4j-core" to "log4j",
+        "log4j-slf4j-impl" to "log4j",
+        "xalan" to "xalan",
+        "xalan-serializer" to "xalan",
+        "saxon-he" to "saxon-he",
+        "svgSalamander" to "svgSalamander",
+        "darklaf-core" to "darklaf",
+        "darklaf-theme" to "darklaf",
+        "darklaf-property-loader" to "darklaf",
+        "darklaf-extensions" to "darklaf-extensions",
+        "commons-collections" to "commons-collections",
+        "commons-collections4" to "commons-collections4",
+        "commons-codec" to "commons-codec",
+        "commons-io" to "commons-io",
+        "commons-lang" to "commons-lang",
+        "commons-lang3" to "commons-lang3",
+        "commons-math3" to "commons-math3",
+        "commons-text" to "commons-text",
+        "commons-jexl" to "commons-jexl",
+        "commons-jexl3" to "commons-jexl3",
+        "xmlgraphics-commons" to "xmlgraphics-commons",
+        "freemarker" to "freemarker",
+        "jodd-props" to "jodd",
+        "jodd-core" to "jodd",
+        "jodd-lagarto" to "jodd",
+        "jodd-log" to "jodd",
+        "rhino" to "rhino",
+        "jcl-over-slf4j" to "slf4j",
+        "slf4j-api" to "slf4j",
+        "groovy" to "groovy",
+        "groovy-dateutil" to "groovy",
+        "groovy-datetime" to "groovy",
+        "groovy-jmx" to "groovy",
+        "groovy-json" to "groovy",
+        "groovy-jsr223" to "groovy",
+        "groovy-sql" to "groovy",
+        "groovy-templates" to "groovy",
+        "xercesImpl" to "xercesImpl",
+        "xml-apis" to "xml-apis",
+        "httpclient" to "httpclient",
+        "httpcore" to "httpcore",
+        "httpasyncclient" to "httpasyncclient",
+        "httpcore-nio" to "httpcore-nio",
+        "httpmime" to "httpmime",
+        "jackson-annotations" to "jackson",
+        "jackson-core" to "jackson",
+        "jackson-databind" to "jackson-databind",
+        "caffeine" to "caffeine",
+        "miglayout-core" to "miglayout",
+        "miglayout-swing" to "miglayout",
+        "tika-core" to "tika",
+        "tika-parsers" to "tika",
+        "jtidy" to "jtidy",
+        "xstream" to "xstream",
+        "jsoup" to "jsoup",
+        "oro" to "oro",
+        "bsh" to "bsh",
+        "cglib-nodep" to "cglib-nodep",
+        "bcmail" to "bouncycastle",
+        "bcpkix" to "bouncycastle",
+        "bcprov" to "bouncycastle",
+        "dec" to "dec",
+        "dnsjava" to "dnsjava",
+        "jmespath-core" to "jmespath",
+        "jmespath-jackson" to "jmespath",
+        "json-path" to "json-path",
+        "json-smart" to "accessors-smart",
+        "accessors-smart" to "accessors-smart",
+        "ph-commons" to "ph-commons",
+        "ph-css" to "ph-css",
+        "mina-core" to "mina-core",
+        "velocity" to "velocity",
+        "jdom" to "jdom",
+        "jline" to "jline",
+        "jsoup" to "jsoup",
+        "mongo-java-driver" to "mongo-java-driver",
+        "neo4j-java-driver" to "neo4j-java-driver",
+        "objenesis" to "objenesis",
+        "mail" to "mail",
+        "ftplet-api" to "ftplet-api",
+        "ftpserver-core" to "ftpserver-core",
+        "geronimo-jms_1.1_spec" to "geronimo-jms",
+        "activemq-broker" to "activemq",
+        "activemq-client" to "activemq",
+        "activemq-spring" to "activemq",
+        "spring-context" to "springframework",
+        "spring-beans" to "springframework"
+    ).associate { (name, versionAlias) ->
+        val dep = catalog.findDependency(
+            // handle aliases with dots converted to dashes
+            name.replace(".", "-")
+        ).orElse(
+            catalog.findDependency(name).orElse(null)
+        )?.get()
+        if (dep != null)
+            (dep.module.group to dep.module.name) to ver(versionAlias)
+        else
+            null
+    }.filterNotNull()
+        .toMap()
+        .also { map ->
+            // Also add groovy-bom group entries directly by group
+            // They will be caught via group match below
+        }
+}
+
 // ── Configurations ────────────────────────────────────────────────────────────
+configurations.all {
+    resolutionStrategy.eachDependency {
+        val g = requested.group
+        val n = requested.name
+        if (requested.version.isNullOrEmpty()) {
+            val resolved = when {
+                // Groovy family — all modules share same version
+                g == "org.codehaus.groovy" -> ver("groovy")
+                // Log4j family
+                g == "org.apache.logging.log4j" -> ver("log4j")
+                // SLF4J family
+                g == "org.slf4j" -> ver("slf4j")
+                // Darklaf family
+                g == "com.github.weisj" && n.startsWith("darklaf-extensions") -> ver("darklaf-extensions")
+                g == "com.github.weisj" -> ver("darklaf")
+                // Apache Commons
+                g == "commons-collections" -> ver("commons-collections")
+                g == "org.apache.commons" && n == "commons-collections4" -> ver("commons-collections4")
+                g == "commons-codec" -> ver("commons-codec")
+                g == "commons-io" -> ver("commons-io")
+                g == "commons-lang" -> ver("commons-lang")
+                g == "org.apache.commons" && n == "commons-lang3" -> ver("commons-lang3")
+                g == "org.apache.commons" && n == "commons-math3" -> ver("commons-math3")
+                g == "org.apache.commons" && n == "commons-text" -> ver("commons-text")
+                g == "org.apache.commons" && n == "commons-jexl" -> ver("commons-jexl")
+                g == "org.apache.commons" && n == "commons-jexl3" -> ver("commons-jexl3")
+                g == "org.apache.commons" && n == "commons-dbcp2" -> ver("commons-dbcp2")
+                g == "org.apache.commons" && n == "commons-pool2" -> ver("commons-pool2")
+                // BSF
+                g == "bsf" && n == "bsf" -> ver("bsf")
+                // rsyntaxtextarea
+                g == "com.fifesoft" && n == "rsyntaxtextarea" -> ver("rsyntaxtextarea")
+                // svgSalamander
+                g == "com.formdev" && n == "svgSalamander" -> ver("svgSalamander")
+                // Xalan
+                g == "xalan" -> ver("xalan")
+                // Saxon
+                g == "net.sf.saxon" && n == "Saxon-HE" -> ver("saxon-he")
+                // xmlgraphics
+                g == "org.apache.xmlgraphics" && n == "xmlgraphics-commons" -> ver("xmlgraphics-commons")
+                // Freemarker
+                g == "org.freemarker" && n == "freemarker" -> ver("freemarker")
+                // Jodd
+                g == "org.jodd" -> ver("jodd")
+                // Rhino
+                g == "org.mozilla" && n == "rhino" -> ver("rhino")
+                // Xerces
+                g == "xerces" && n == "xercesImpl" -> ver("xercesImpl")
+                g == "xml-apis" && n == "xml-apis" -> ver("xml-apis")
+                // HttpComponents
+                g == "org.apache.httpcomponents" && n == "httpclient" -> ver("httpclient")
+                g == "org.apache.httpcomponents" && n == "httpcore" -> ver("httpcore")
+                g == "org.apache.httpcomponents" && n == "httpasyncclient" -> ver("httpasyncclient")
+                g == "org.apache.httpcomponents" && n == "httpcore-nio" -> ver("httpcore-nio")
+                g == "org.apache.httpcomponents" && n == "httpmime" -> ver("httpmime")
+                // Jackson
+                g == "com.fasterxml.jackson.core" && n == "jackson-databind" -> ver("jackson-databind")
+                g == "com.fasterxml.jackson.core" -> ver("jackson")
+                // Caffeine
+                g == "com.github.ben-manes.caffeine" && n == "caffeine" -> ver("caffeine")
+                // MigLayout
+                g == "com.miglayout" -> ver("miglayout")
+                // Tika
+                g == "org.apache.tika" -> ver("tika")
+                // JTidy
+                g == "net.sf.jtidy" && n == "jtidy" -> ver("jtidy")
+                // XStream
+                g == "com.thoughtworks.xstream" && n == "xstream" -> ver("xstream")
+                // jsoup
+                g == "org.jsoup" && n == "jsoup" -> ver("jsoup")
+                // Oro
+                g == "oro" && n == "oro" -> ver("oro")
+                // BeanShell
+                g == "org.apache-extras.beanshell" && n == "bsh" -> ver("bsh")
+                // cglib
+                g == "cglib" && n == "cglib-nodep" -> ver("cglib-nodep")
+                // Bouncy Castle
+                g == "org.bouncycastle" -> ver("bouncycastle")
+                // dec (brotli)
+                g == "org.brotli" && n == "dec" -> ver("dec")
+                // dnsjava
+                g == "dnsjava" && n == "dnsjava" -> ver("dnsjava")
+                // jmespath
+                g == "io.burt" -> ver("jmespath")
+                // json-path
+                g == "com.jayway.jsonpath" && n == "json-path" -> ver("json-path")
+                // json-smart / accessors-smart
+                g == "net.minidev" -> ver("accessors-smart")
+                // ph-commons / ph-css
+                g == "com.helger" && n == "ph-commons" -> ver("ph-commons")
+                g == "com.helger" && n == "ph-css" -> ver("ph-css")
+                // mina
+                g == "org.apache.mina" && n == "mina-core" -> ver("mina-core")
+                // velocity
+                g == "org.apache.velocity" && n == "velocity" -> ver("velocity")
+                // jdom
+                g == "org.jdom" && n == "jdom" -> ver("jdom")
+                // jline
+                g == "org.jline" && n == "jline" -> ver("jline")
+                // mongo
+                g == "org.mongodb" && n == "mongo-java-driver" -> ver("mongo-java-driver")
+                // neo4j
+                g == "org.neo4j.driver" && n == "neo4j-java-driver" -> ver("neo4j-java-driver")
+                // objenesis
+                g == "org.objenesis" && n == "objenesis" -> ver("objenesis")
+                // mail
+                g == "javax.mail" && n == "mail" -> ver("mail")
+                // ftp
+                g == "org.apache.ftpserver" && n == "ftplet-api" -> ver("ftplet-api")
+                g == "org.apache.ftpserver" && n == "ftpserver-core" -> ver("ftpserver-core")
+                // geronimo
+                g == "org.apache.geronimo.specs" -> ver("geronimo-jms")
+                // activemq
+                g == "org.apache.activemq" -> ver("activemq")
+                // spring
+                g == "org.springframework" -> ver("springframework")
+                // junit
+                g == "junit" && n == "junit" -> ver("junit4")
+                g == "org.junit.jupiter" -> ver("junit5")
+                g == "org.junit.vintage" -> ver("junit5")
+                // hamcrest
+                g == "org.hamcrest" -> ver("hamcrest")
+                // javax.activation
+                g == "javax.activation" -> ver("javax-activation")
+                g == "com.sun.activation" -> ver("javax-activation")
+                // wiremock
+                g == "com.github.tomakehurst" && n == "wiremock-jre8" -> ver("wiremock-jre8")
+                // equalsverifier
+                g == "nl.jqno.equalsverifier" && n == "equalsverifier" -> ver("equalsverifier")
+                // jcharts
+                g == "jcharts" && n == "jcharts" -> ver("jcharts")
+                // hsqldb
+                g == "org.hsqldb" && n == "hsqldb" -> ver("hsqldb")
+                // spock
+                g == "org.spockframework" && n == "spock-core" -> ver("spock-core")
+                // xmlpull / xpp3
+                g == "xmlpull" && n == "xmlpull" -> ver("xmlpull")
+                g == "xpp3" -> ver("xpp3-min")
+                // apiguardian
+                g == "org.apiguardian" && n == "apiguardian-api" -> ver("apiguardian-api")
+                // ASM
+                g == "org.ow2.asm" && n == "asm" -> ver("asm")
+                else -> null
+            }
+            if (resolved != null) useVersion(resolved)
+        }
+    }
+}
+
+// ── Configurations (excludes) ──────────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
     exclude(group = "", module = "commons-pool2")
     exclude(group = "javax.jms", module = "jms")
 }
-
-// ── Versions ──────────────────────────────────────────────────────────────────
-val jmeterVersion = ver("jmeter")
 
 // ── Fork submodules (built from source) ───────────────────────────────────────
 val jars = arrayOf(
