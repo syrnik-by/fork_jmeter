@@ -27,7 +27,7 @@ val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named
  * Throws a clear error if the alias is not found.
  */
 fun lib(alias: String): MinimalExternalModuleDependency =
-    catalog.findLibrary(alias).orElseThrow {
+    catalog.findDependency(alias).orElseThrow {
         GradleException("Library alias '$alias' not found in libs version catalog")
     }.get()
 
