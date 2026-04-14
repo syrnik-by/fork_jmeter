@@ -157,7 +157,7 @@ val allTestClasses by configurations.creating {
 // ── Dependencies ──────────────────────────────────────────────────────────────
 dependencies {
     // BOM — provides version constraints for all managed libs
-    api(platform(project(":src:bom")))
+    implementation(platform(project(":src:bom")))
 
     // Fork submodules
     for (p in jars) {
