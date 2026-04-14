@@ -14,41 +14,64 @@
  *   mavenPassword=secret
  */
 
-import de.undercouch.gradle.tasks.download.Download
-
 // ── Credentials ───────────────────────────────────────────────────────────────
-def nexusRawRepoUrl  = project.findProperty('nexusRawRepoUrl')  ?: ''
-def mavenUsername    = project.findProperty('mavenUsername')    ?: ''
-def mavenPassword    = project.findProperty('mavenPassword')    ?: ''
+def nexusRawRepoUrl = project.findProperty('nexusRawRepoUrl') ?: ''
+def mavenUsername   = project.findProperty('mavenUsername')   ?: ''
+def mavenPassword   = project.findProperty('mavenPassword')   ?: ''
 
 def MVN_USER = System.getenv('MVN_USER') ?: mavenUsername
 def MVN_PASS = System.getenv('MVN_PASS') ?: mavenPassword
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-def BUNDLE_NAME    = 'jmeter-libs.zip'
-def bundleUrl      = "${nexusRawRepoUrl}${BUNDLE_NAME}"
+def BUNDLE_NAME = 'jmeter-libs.zip'
+def bundleUrl   = "${nexusRawRepoUrl}${BUNDLE_NAME}"
 
 // Expose dirs to build.gradle (used in clean task)
 ext.downloadDir    = file("${buildDir}/downloaded")
 ext.unpackedDir    = file("${buildDir}/unpacked")
 ext.bundleStageDir = file("${buildDir}/bundle-stage")
 
-def bundleFile     = file("${downloadDir}/${BUNDLE_NAME}")
+def bundleFile = file("${downloadDir}/${BUNDLE_NAME}")
 
 // ── pullLibsBundle ─────────────────────────────────────────────────────────────
-tasks.register('downloadLibsBundle', Download) {
+
+/**
+ * [internal] Скачивает bundle jmeter-libs.zip из Nexus RAW через HttpURLConnection.
+ * Используем plain HTTP вместо de.undercouch.download, потому что классы плагина
+ * недоступны в apply-from скриптах в Gradle 7.x.
+ */
+tasks.register('downloadLibsBundle') {
     description = '[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW'
-    src     bundleUrl
-    dest    bundleFile
-    overwrite       false
-    quiet           false
-    onlyIfModified  true
-    useETag         true
-    username        MVN_USER
-    password        MVN_PASS
-    connectTimeout  30_000
-    readTimeout     60_000
-    doFirst { downloadDir.mkdirs() }
+    outputs.file bundleFile
+    doLast {
+        downloadDir.mkdirs()
+        if (bundleUrl.empty) {
+            throw new GradleException(
+                "nexusRawRepoUrl не задан. Добавьте его в gradle.properties или передайте -PnexusRawRepoUrl=..."
+            )
+        }
+        logger.lifecycle("Скачивание ${bundleUrl} -> ${bundleFile}")
+        def conn = new URL(bundleUrl).openConnection() as HttpURLConnection
+        try {
+            conn.requestMethod  = 'GET'
+            conn.connectTimeout = 30_000
+            conn.readTimeout    = 120_000
+            if (MVN_USER) {
+                conn.setRequestProperty('Authorization',
+                    'Basic ' + Base64.encoder.encodeToString("${MVN_USER}:${MVN_PASS}".bytes))
+            }
+            def code = conn.responseCode
+            if (code in 200..299) {
+                bundleFile.withOutputStream { os -> conn.inputStream.transferTo(os) }
+                logger.lifecycle("Скачивание успешно (HTTP ${code}, ${bundleFile.length() / 1024} KB)")
+            } else {
+                def body = conn.errorStream?.text ?: ''
+                throw new GradleException("Скачивание завершилось с ошибкой HTTP ${code}: ${body}")
+            }
+        } finally {
+            conn.disconnect()
+        }
+    }
 }
 
 tasks.register('unpackLibsBundle', Copy) {
@@ -80,9 +103,9 @@ tasks.register('pullLibsBundle') {
 
 // ── pushLibsBundle ─────────────────────────────────────────────────────────────
 tasks.register('packLibsBundle', Zip) {
-    description            = '[internal] Упаковывает текущие lib/ + bin/ в ZIP'
-    archiveFileName        = BUNDLE_NAME
-    destinationDirectory   = layout.buildDirectory.dir('bundle-stage')
+    description          = '[internal] Упаковывает текущие lib/ + bin/ в ZIP'
+    archiveFileName      = BUNDLE_NAME
+    destinationDirectory = layout.buildDirectory.dir('bundle-stage')
     from(rootDir) {
         include 'bin/**'
         include 'lib/**'
