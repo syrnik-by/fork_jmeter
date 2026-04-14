@@ -109,7 +109,8 @@ subprojects {
     }
 
     val testClasses by configurations.creating {
-        extendsFrom(configurations["testRuntime"])
+        // testRuntime was removed in Gradle 7, replaced by testRuntimeClasspath
+        extendsFrom(configurations["testRuntimeClasspath"])
     }
 
     if (testsPresent) {
