@@ -16,10 +16,17 @@
  */
 
 plugins {
-  //  id("com.github.vlsi.ide")
+    `java-library`
+//  id("com.github.vlsi.ide")
 }
 
 dependencies {
+    // BOM must be declared explicitly here because plugins.withId("java-library")
+    // in root build.gradle.kts fires only after the plugin is applied via plugins {}.
+    // Without this, all version-less dependencies (bsf:bsf, groovy, darklaf, etc.)
+    // fail to resolve when :src:dist traverses runtimeClasspath.
+    api(platform(project(":src:bom")))
+
     api(project(":src:launcher"))
     api(project(":src:jorphan"))
     testImplementation(project(":src:jorphan", "testClasses"))
