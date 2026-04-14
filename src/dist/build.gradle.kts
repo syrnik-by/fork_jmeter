@@ -15,19 +15,17 @@
  * limitations under the License.
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Этот файл — оркестратор. Вся тяжёлая логика вынесена в:
-//   gradle/nexus-raw.gradle.kts   — работа с Nexus RAW (upload/download бандла)
-//   gradle/local-dist.gradle.kts  — сборка локального дистрибутива (createDist)
-// ─────────────────────────────────────────────────────────────────────────────
-
 import com.github.vlsi.gradle.crlf.CrLfSpec
 import com.github.vlsi.gradle.crlf.LineEndings
 import java.nio.file.Paths
 import de.undercouch.gradle.tasks.download.Download
+import de.undercouch.gradle.tasks.download.Verify
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint.strictly
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.file.Files
 
 plugins {
     java
@@ -36,11 +34,7 @@ plugins {
     `maven-publish`
 }
 
-apply(from = "gradle/nexus-raw.gradle.kts")
-apply(from = "gradle/local-dist.gradle.kts")
-
 // ── Version catalog accessor ──────────────────────────────────────────────────
-// Объявлены здесь т.к. используются и в dependencies{} и в скриптах через extra.
 val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 fun lib(alias: String): MinimalExternalModuleDependency =
@@ -53,8 +47,7 @@ fun ver(alias: String): String =
         GradleException("Version alias '$alias' not found in libs version catalog")
     }.requiredVersion
 
-fun gav(alias: String): String =
-    lib(alias).run { "${module.group}:${module.name}:${versionConstraint.requiredVersion}" }
+fun gav(alias: String): String = lib(alias).run { "${module.group}:${module.name}:${versionConstraint.requiredVersion}" }
 
 // ── Versions ──────────────────────────────────────────────────────────────────
 val jmeterVersion = ver("jmeter")
@@ -155,7 +148,7 @@ configurations.all {
     }
 }
 
-// ── Configurations (excludes) ─────────────────────────────────────────────────
+// ── Configurations (excludes) ──────────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude(group = "org.apache.jmeter", module = "bom")
     exclude(group = "", module = "commons-pool2")
@@ -171,7 +164,7 @@ val jars = arrayOf(
     ":src:launcher"
 )
 
-// ── Upstream JMeter JARs ──────────────────────────────────────────────────────
+// ── Upstream JMeter JARs (versioned via jmeterVersion) ────────────────────────
 val jarsDeps = arrayOf(
     "org.apache.jmeter:ApacheJMeter_components:$jmeterVersion",
     "org.apache.jmeter:jorphan:$jmeterVersion",
@@ -188,14 +181,14 @@ val jarsDeps = arrayOf(
     "org.apache.jmeter:ApacheJMeter_tcp:$jmeterVersion"
 )
 
-// ── Extra dist JARs (not in BOM) ──────────────────────────────────────────────
+// ── Extra dist JARs (not in BOM — resolved via catalog) ───────────────────────
 val extraLibs = listOf(
     "jna", "jxlayer", "ojdbc6", "pdfbox", "mssql-jdbc",
     "rabbitmq-amqp-client", "javatuples", "jsch",
     "hdrhistogram", "osgi-core", "ibm-mq", "darcula-bulenkov"
 )
 
-// ── Plugin JARs (lib/ext) ─────────────────────────────────────────────────────
+// ── Plugin JARs (not in BOM — resolved via catalog) ───────────────────────────
 val pluginAliases = listOf(
     "plugin-cmn", "plugin-manager", "plugin-casutg", "plugin-perfmon",
     "plugin-tst", "plugin-cmdrunner", "plugin-dummy", "plugin-functions",
@@ -209,7 +202,15 @@ val pluginAliases = listOf(
     "plugin-udp", "plugin-wssecurity"
 )
 
-// ── Extra configurations ──────────────────────────────────────────────────────
+// Set of "group:name" strings for plugin detection in populateLibs
+val pluginModuleIds: Set<String> by lazy {
+    pluginAliases.map { alias ->
+        val dep = lib(alias)
+        "${dep.module.group}:${dep.module.name}"
+    }.toSet()
+}
+
+// ── Extra configurations ───────────────────────────────────────────────────────
 val buildDocs by configurations.creating { isCanBeConsumed = false }
 val generatorJar by configurations.creating { isCanBeConsumed = false }
 val binLicense by configurations.creating { isCanBeConsumed = false }
@@ -267,29 +268,208 @@ dependencies {
     generatorJar(project(":src:generator", "archives"))
 }
 
-// ── Nexus coordinates (из gradle.properties или env) ──────────────────────────
+// ── Nexus credentials (gradle.properties или env) ─────────────────────────────
+val nexusRawRepoUrl: String  by project   // http://nexus:8081/repository/jmeter-raw/
 val snapshotsRepoUrl: String by project
-val releasesRepoUrl: String by project
-val mavenUsername: String by project
-val mavenPassword: String by project
+val releasesRepoUrl: String  by project
+val mavenUsername: String    by project
+val mavenPassword: String    by project
 
 val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
 val MVN_PASS  = System.getenv("MVN_PASS")  ?: mavenPassword
 
-val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+val BUNDLE_NAME   = "jmeter-libs.zip"
+val bundleUrl     = "${nexusRawRepoUrl}${BUNDLE_NAME}"
+val downloadDir   = File(buildDir, "downloaded")
+val unpackedDir   = File(buildDir, "unpacked")
+val bundleFile    = File(downloadDir, BUNDLE_NAME)
+val bundleStageDir = File(buildDir, "bundle-stage")
 
-group = "ru.nt_master"
 val artifactId      = "nt_master"
-val artifactVersion = project.findProperty("version") as? String
+val artifactVersion: String = project.findProperty("version") as? String
     ?: project.findProperty("appversion") as? String
     ?: "1.0.0"
+
+val urlSite = if (artifactVersion.endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+
+// ── pullLibsBundle ─────────────────────────────────────────────────────────────
+// Скачивает jmeter-libs.zip из Nexus RAW и раскладывает lib/ + bin/ по местам.
+
+tasks.register<Download>("downloadLibsBundle") {
+    description = "[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW"
+    src(bundleUrl)
+    dest(bundleFile)
+    overwrite(false)
+    quiet(false)
+    onlyIfModified(true)
+    useETag(true)
+    username(MVN_USER)
+    password(MVN_PASS)
+    connectTimeout(30_000)
+    readTimeout(60_000)
+    doFirst { downloadDir.mkdirs() }
+}
+
+tasks.register<Copy>("unpackLibsBundle") {
+    description = "[internal] Распаковывает bundle в buildDir/unpacked"
+    dependsOn("downloadLibsBundle")
+    from(zipTree(bundleFile))
+    into(unpackedDir)
+    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+    includeEmptyDirs = false
+}
+
+tasks.register<Copy>("copyBundleToRoot") {
+    description = "[internal] Копирует lib/ и bin/ из unpacked в корень проекта"
+    dependsOn("unpackLibsBundle")
+    from(unpackedDir) {
+        include("bin/**")
+        include("lib/**")
+    }
+    into(rootDir)
+    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+}
+
+tasks.register("pullLibsBundle") {
+    group = "bundle"
+    description = "Скачивает bundle из Nexus RAW и раскладывает lib/ + bin/ по местам"
+    dependsOn("downloadLibsBundle", "unpackLibsBundle", "copyBundleToRoot")
+    doLast { logger.lifecycle("pullLibsBundle завершён") }
+}
+
+// ── pushLibsBundle ─────────────────────────────────────────────────────────────
+// Упаковывает текущие lib/ + bin/ и заливает в Nexus RAW (перезаписывает).
+
+tasks.register<Zip>("packLibsBundle") {
+    description = "[internal] Упаковывает текущие lib/ + bin/ в ZIP для загрузки в Nexus RAW"
+    archiveFileName.set(BUNDLE_NAME)
+    destinationDirectory.set(layout.buildDirectory.dir("bundle-stage"))
+    from(rootDir) {
+        include("bin/**")
+        include("lib/**")
+    }
+    doFirst { bundleStageDir.mkdirs() }
+}
+
+tasks.register("pushLibsBundle") {
+    group = "bundle"
+    description = "Упаковывает lib/ + bin/ и загружает bundle в Nexus RAW (перезаписывает)"
+    dependsOn("packLibsBundle")
+    doLast {
+        val file = layout.buildDirectory.dir("bundle-stage").get().file(BUNDLE_NAME).asFile
+        require(file.exists()) { "Bundle не найден: ${file.path}" }
+        logger.lifecycle("Загрузка ${file.name} (${file.length() / 1024} KB) -> $bundleUrl")
+        val conn = URL(bundleUrl).openConnection() as HttpURLConnection
+        try {
+            conn.requestMethod = "PUT"
+            conn.doOutput = true
+            conn.connectTimeout = 30_000
+            conn.readTimeout    = 120_000
+            conn.setRequestProperty("Content-Type", "application/zip")
+            conn.setRequestProperty("Content-Length", file.length().toString())
+            conn.setRequestProperty(
+                "Authorization",
+                "Basic " + java.util.Base64.getEncoder().encodeToString("$MVN_USER:$MVN_PASS".toByteArray())
+            )
+            Files.copy(file.toPath(), conn.outputStream)
+            conn.outputStream.flush()
+            val code = conn.responseCode
+            if (code in 200..299) {
+                logger.lifecycle("Загрузка успешна (HTTP $code)")
+            } else {
+                val body = conn.errorStream?.bufferedReader()?.readText() ?: ""
+                throw GradleException("Загрузка завершилась с ошибкой HTTP $code: $body")
+            }
+        } finally {
+            conn.disconnect()
+        }
+    }
+}
+
+// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
+val libsSpec = copySpec {}
+val libsExt  = copySpec {}
+val binLibs  = copySpec {}
+
+val populateLibs by tasks.registering {
+    dependsOn(configurations.runtimeClasspath)
+    doLast {
+        val launcherProject  = project(":src:launcher").path
+        val bshclientProject = project(":src:bshclient").path
+        val jorphanProject   = ":src:jorphan"
+
+        val pluginIds = pluginClasspath
+            .resolvedConfiguration.resolvedArtifacts
+            .map { "${it.moduleVersion.id.group}:${it.moduleVersion.id.name}" }
+            .toSet()
+
+        for (dep in configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts) {
+            val compId = dep.id.componentIdentifier
+            if (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild) {
+                val moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+                if (moduleId in pluginIds) libsExt.from(dep.file) else libsSpec.from(dep.file)
+                continue
+            }
+            when (compId.projectPath) {
+                launcherProject              -> binLibs
+                jorphanProject,
+                bshclientProject             -> libsSpec
+                else                         -> libsExt
+            }.from(dep.file) {
+                rename { dep.name + "." + dep.extension }
+            }
+        }
+
+        for (dep in pluginClasspath.resolvedConfiguration.resolvedArtifacts) {
+            val compId   = dep.id.componentIdentifier
+            val moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+            if (moduleId in pluginIds && (compId !is ProjectComponentIdentifier || !compId.build.isCurrentBuild)) {
+                libsExt.from(dep.file)
+            } else if (moduleId !in pluginIds) {
+                libsSpec.from(dep.file)
+            }
+        }
+    }
+}
+
+libsSpec.from(populateLibs)
+libsExt.from(populateLibs)
+binLibs.from(populateLibs)
+
+// ── copyLibs / copyBinLibs ─────────────────────────────────────────────────────
+val copyLibs by tasks.registering(Sync::class) {
+    rootSpec.into("$rootDir/lib")
+    with(libsSpec)
+    preserve {
+        include("**/*.txt")
+        include("ext/*.jar")
+        exclude("ext/ApacheJMeter*.jar")
+    }
+    into("ext") {
+        with(libsExt)
+        from(files(generatorJar)) {
+            rename { "ApacheJMeter_generator.jar" }
+        }
+    }
+}
+
+val copyBinLibs by tasks.registering(Copy::class) {
+    rootSpec.into("$rootDir/bin")
+    with(binLibs)
+}
+
+// ── createDist ─────────────────────────────────────────────────────────────────
+val createDist by tasks.registering {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Собирает fork JAR и раскладывает их в lib/ и bin/"
+    dependsOn(copyLibs, copyBinLibs)
+}
 
 // ── assembleArtifact ──────────────────────────────────────────────────────────
 // pullLibsBundle → createDist → zip → publish
 tasks.register<Zip>("assembleArtifact") {
     group = "release"
     description = "Собирает финальный ZIP дистрибутива для публикации в Maven Nexus"
-    // pullLibsBundle объявлен в nexus-raw.gradle.kts, createDist — в local-dist.gradle.kts
     dependsOn("pullLibsBundle", "createDist")
     archiveBaseName.set(artifactId)
     archiveVersion.set(artifactVersion)
@@ -302,6 +482,8 @@ tasks.register<Zip>("assembleArtifact") {
 }
 
 // ── publishing ────────────────────────────────────────────────────────────────
+group = "ru.nt_master"
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -323,19 +505,16 @@ publishing {
 }
 
 // ── publishAll — одна кнопка для разработчика ─────────────────────────────────
-// Транзитивно: pullLibsBundle → createDist → assembleArtifact → publish
 tasks.register("publishAll") {
     group = "release"
-    description = "Получить бандл из Nexus RAW → собрать → опубликовать в Maven Nexus"
+    description = "Получить bundle из Nexus RAW → собрать → опубликовать в Maven Nexus"
     dependsOn("assembleArtifact", "publish")
 }
 
 // ── runGui ────────────────────────────────────────────────────────────────────
-// Для локальной разработки: получить бандл, собрать JAR, запустить GUI
 val runGui by tasks.registering(JavaExec::class) {
     group = "Development"
-    description = "Получает бандл из Nexus RAW, собирает дистрибутив и запускает JMeter GUI"
-    // pullLibsBundle → createDist, затем запуск
+    description = "Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI"
     dependsOn("pullLibsBundle", "createDist")
     workingDir = File(project.rootDir, "bin")
     main = "org.apache.jmeter.NewDriver"
@@ -364,6 +543,96 @@ val runGui by tasks.registering(JavaExec::class) {
         if (e == "darklaf.native") {
             systemProperty("darklaf.decorations", "true")
             systemProperty("darklaf.allowNativeCode", "true")
+        }
+    }
+}
+
+// ── Clean ──────────────────────────────────────────────────────────────────────
+tasks.named(BasePlugin.CLEAN_TASK_NAME).configure {
+    doLast {
+        delete(downloadDir)
+        delete(unpackedDir)
+        delete(bundleStageDir)
+        delete(fileTree("$rootDir/lib") { include("*.jar") })
+        delete(fileTree("$rootDir/lib/ext") { include("*.jar") })
+        delete(fileTree("$rootDir/bin") { include("ApacheJMeter.jar") })
+    }
+}
+
+// ── Docs helpers ───────────────────────────────────────────────────────────────
+val xdocs = "$rootDir/xdocs"
+
+fun CopySpec.docCssAndImages() {
+    from(xdocs) {
+        include(".htaccess")
+        include("css/**")
+        include("images/**")
+    }
+}
+
+fun CopySpec.printableDocumentation() {
+    into("docs") { docCssAndImages() }
+}
+
+fun CopySpec.excludeLicenseFromSourceRelease() {
+    exclude("licenses/**")
+    exclude("LICENSE")
+}
+
+val distributionGroup = "distribution"
+val baseFolder = "apache-jmeter-${rootProject.version}"
+
+val javadocAggregate by tasks.registering(Javadoc::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Генерирует агрегированный Javadoc для всех fork-модулей"
+    val sourceSets = jars.map { project(it).sourceSets.main }
+    classpath = files(sourceSets.map { set -> set.map { it.output + it.compileClasspath } })
+    setSource(sourceSets.map { set -> set.map { it.allJava } })
+    setDestinationDir(file("$buildDir/docs/javadocAggregate"))
+}
+
+fun CopySpec.javadocs() = from(javadocAggregate)
+
+fun CrLfSpec.binaryLayout() = copySpec {
+    into(baseFolder) {
+        from(files(binLicense))
+        from(rootDir) {
+            exclude("bin/testfiles")
+            exclude("bin/rmi_keystore.jks")
+            include("bin/**")
+            include("lib/ext/**")
+            include("lib/junit/**")
+            include("extras/**")
+            include("README.md")
+            excludeLicenseFromSourceRelease()
+        }
+        into("bin") { with(binLibs) }
+        into("lib") {
+            with(libsSpec)
+            into("ext") { with(libsExt) }
+        }
+        printableDocumentation()
+        into("docs/api") { javadocs() }
+    }
+}
+
+val skipDist: Boolean by rootProject.extra
+
+for (type in listOf("binary", "source")) {
+    if (skipDist) break
+    for (archive in listOf(Zip::class, Tar::class)) {
+        val taskName = "dist${archive.simpleName}${type.replace("binary", "").capitalize()}"
+        tasks.register(taskName, archive) {
+            dependsOn(createDist)
+            val eol = if (archive == Tar::class) LineEndings.LF else LineEndings.CRLF
+            group = distributionGroup
+            description = "Создаёт $type дистрибутив"
+            if (this is Tar) compression = Compression.GZIP
+            archiveBaseName.set(
+                "apache-jmeter-${rootProject.version}${if (type == "source") "_src" else ""}"
+            )
+            archiveVersion.set("")
+            CrLfSpec(eol).run { binaryLayout() }
         }
     }
 }
