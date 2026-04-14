@@ -192,7 +192,6 @@ tasks.named(BasePlugin.CLEAN_TASK_NAME).configure {
     }
 }
 
-// Renamed from 'libs' to 'libsSpec' to avoid shadowing the version catalog extension 'libs'
 val libsSpec = copySpec {
     // Third-party dependencies + jorphan.jar
 }
@@ -332,8 +331,12 @@ fun CrLfSpec.binaryLayout() = copySpec {
 
     into(baseFolder) {
         println("---->>>>" + baseFolder)
+        // Note: license content is taken from "/build/..", so gitignore should not be used
+        // Note: this is a "license + third-party licenses", not just Apache-2.0
+        // Note: files(...) adds both "files" and "dependency"
         from(files(binLicense))
         from(rootDir) {
+            //    gitignore(gitProps)
             exclude("bin/testfiles")
             exclude("bin/rmi_keystore.jks")
             include("bin/**")
@@ -361,18 +364,39 @@ fun CrLfSpec.binaryLayout() = copySpec {
     }
 }
 
+//fun CrLfSpec.sourceLayout() = copySpec {
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    gitattributes(gitProps)
+//    into(baseFolder) {
+//        // Note: license content is taken from "/build/..", so gitignore should not be used
+//        // Note: this is a "license + third-party licenses", not just Apache-2.0
+//        // Note: files(...) adds both "files" and "dependency"
+//        from(files(srcLicense))
+//        // Include all the source files
+//        from(rootDir) {
+//            gitignore(gitProps)
+//            excludeLicenseFromSourceRelease()
+//        }
+//    }
+//}
+//
 val javadocAggregate by tasks.registering(Javadoc::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Generates aggregate javadoc for all the artifacts"
 
     val sourceSets = jars.map { project(it).sourceSets.main }
+//
     classpath = files(sourceSets.map { set -> set.map { it.output + it.compileClasspath } })
+//    // Aggregate javadoc needs to include generated JMeterVersion class
+//    // So we use delay computation of source files
     setSource(sourceSets.map { set -> set.map { it.allJava } })
     setDestinationDir(file("$buildDir/docs/javadocAggregate"))
 }
-
+//
 val skipDist: Boolean by rootProject.extra
-
+//
+//// Generates distZip, distTar, distZipSource, and distTarSource tasks
+//// The archives and checksums are put to build/distributions
 for (type in listOf("binary", "source")) {
     if (skipDist) {
         break
@@ -384,18 +408,37 @@ for (type in listOf("binary", "source")) {
 
             val eol = if (archive == Tar::class) LineEndings.LF else LineEndings.CRLF
             group = distributionGroup
-            description = "Creates $type distribution with TODO "
+            description = "Creates $type distribution with TODO "// $eol line endings for text files"
             if (this is Tar) {
                 compression = Compression.GZIP
             }
+            // Gradle does not track "filters" as archive/copy task dependencies,
+            // So a mere change of a file attribute won't trigger re-execution of a task
+            // So we add a custom property to re-execute the task in case attributes change
+            //inputs.property("gitproperties", gitProps.map { it.props.attrs.toString() })
+
+            // Gradle defaults to the following pattern, and JMeter was using apache-jmeter-5.1_src.zip
+            // [baseName]-[appendix]-[version]-[classifier].[extension]
             archiveBaseName.set("apache-jmeter-${rootProject.version}${if (type == "source") "_src" else ""}")
+            // Discard project version since we want it to be added before "_src"
             archiveVersion.set("")
             CrLfSpec(eol).run {
+                //wa1191SetInputs(gitProps)
+                //  with(if
+                //          (type == "source")
+                //      sourceLayout()
+                //
+                //
+                //  else
                 binaryLayout()
             }
         }
+        // releaseArtifacts {
+        //     artifact(archiveTask)
+        // }
     }
 }
+//
 
 val snapshotsRepoUrl: String by project
 val releasesRepoUrl: String by project
@@ -419,37 +462,56 @@ val artifactVersion = project.findProperty("version") as? String ?: project.find
 val artifactFileName = "${artifactId}-${artifactVersion}.zip"
 val nexusDownloadUrl = "${urlSite}${artifactGroup}/${artifactId}/${artifactVersion}/${artifactFileName}"
 
+// Куда скачиваем ZIP
 val downloadDir = File(buildDir, "downloaded")
 val zipFile = File(downloadDir, artifactFileName)
 
 tasks.register<Download>("downloadArtifactZip") {
     description = "Скачивает ZIP файл из Nexus raw репозитория"
+
     src(nexusDownloadUrl)
+
+    // Куда сохраняем
     dest(zipFile)
-    overwrite(false)
-    quiet(false)
-    connectTimeout(30000)
-    readTimeout(30000)
+
+    // Настройки для 4.1.2
+    overwrite(false)           // не качать если уже есть
+    quiet(false)              // показывать прогресс
+    connectTimeout(30000)     // 30 сек
+    readTimeout(30000)        // 30 сек
+
+    // Аутентификация
     username(MVN_USER)
     password(MVN_PASS)
+
+    // Умное скачивание (доступно в 4.1.2!)
     onlyIfModified(true)
     useETag(true)
+
+    // Создаем папку для скачивания
     doFirst {
         downloadDir.mkdirs()
     }
 }
 
 tasks.register<Copy>("unzipArtifact") {
+
     description = "Распаковывает ZIP "
     dependsOn("downloadArtifactZip")
+    // Берем ZIP и распаковываем
     from(zipTree(zipFile))
+    // ПРЯМО В ПАПКУ РЕСУРСОВ В КОРНЕ ПРОЕКТА
     into(resourcesDir)
+    // Перезаписываем существующие файлы
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    // Не копируем пустые папки
     includeEmptyDirs = false
+
     doFirst {
         logger.lifecycle("package Распаковка ${zipFile.name} -> ${resourcesDir.path}")
         resourcesDir.mkdirs()
     }
+
     doLast {
         logger.lifecycle("white_check_mark Распаковано в: ${resourcesDir.path}")
         val fileCount = fileTree(resourcesDir).count()
@@ -460,17 +522,23 @@ tasks.register<Copy>("unzipArtifact") {
 tasks.register<Verify>("verifyDownload") {
     description = "Проверяет целостность скачанного ZIP"
     dependsOn("downloadArtifactZip")
+
     src(zipFile)
     algorithm("MD5")
+    // Если знаете чексумму - раскомментируйте:
+    // checksum("your-md5-hash-here")
 }
 
+//creates artifact to load in nexus
 tasks.register<Zip>("assembleArtifact") {
     doFirst {
         CrLfSpec().run { binaryLayout() }
     }
+
     println("create local distribution from #${rootProject.rootDir}")
     archiveBaseName.set("NT_Master")
     destinationDirectory.set(Paths.get("build/distr").toFile())
+
     from(rootProject.rootDir) {
         include("bin/**")
         include("lib/**")
@@ -480,34 +548,41 @@ tasks.register<Zip>("assembleArtifact") {
     description = "Assemble distribution archive $archiveName into ${relativePath(destinationDir)}"
 }
 
+// Принудительная перезагрузка
 tasks.register<Download>("forceDownloadArtifact") {
     description = "Принудительно скачивает ZIP заново"
+
     src(urlSite)
     dest(zipFile)
-    overwrite(true)
+    overwrite(true) // ПРИНУДИТЕЛЬНО перезаписываем
     username(MVN_USER)
     password(MVN_PASS)
+
     doFirst {
         logger.lifecycle("warning Принудительное скачивание: $urlSite")
     }
 }
 
+// Очистка ресурсов
 tasks.register<Delete>("cleanResources") {
     description = "Удаляет распакованные ресурсы"
     delete(resourcesDir)
 }
 
+// Очистка скачанных файлов
 tasks.register<Delete>("cleanDownloads") {
     description = "Удаляет скачанные ZIP файлы"
     delete(downloadDir)
 }
 
+// Полный цикл подготовки
 tasks.register("prepareBundle") {
     description = "Скачивает, проверяет и распаковывает бандл"
     dependsOn("downloadArtifactZip", "verifyDownload", "unzipArtifact")
     group = "bundle"
 }
 
+// Привязка к стандартным задачам
 tasks.build {
     dependsOn("unzipArtifact")
 }
@@ -516,10 +591,15 @@ tasks.clean {
     dependsOn("cleanResources", "cleanDownloads")
 }
 
+
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             artifact(tasks.getByName("assembleArtifact"))
+            //artifactId = "nt_master"
+            //artifact( tasks.getByName("distTar"))
+            //lib // extras //xdocs //bin
         }
     }
 
@@ -563,6 +643,7 @@ val runGui by tasks.registering(JavaExec::class) {
     val props = System.getProperties()
     @Suppress("UNCHECKED_CAST")
     for (e in props.propertyNames() as `java.util`.Enumeration<String>) {
+        // Pass -Djmeter.* and -Ddarklaf.* properties to the JMeter process
         if (e.startsWith("jmeter.") || e.startsWith("darklaf.")) {
             passProperty(e)
         }
@@ -572,3 +653,4 @@ val runGui by tasks.registering(JavaExec::class) {
         }
     }
 }
+
