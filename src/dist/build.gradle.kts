@@ -25,6 +25,7 @@ import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.
 import java.io.File
 
 plugins {
+    java
     id("de.undercouch.download") version "4.1.2"
     id("com.github.vlsi.crlf")
     `maven-publish`
