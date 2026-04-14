@@ -32,13 +32,13 @@ fun DependencyConstraintHandlerScope.apiv(
     notation: String,
     versionProp: String = notation.substringAfterLast(':')
 ) =
-    "api"(notation + ":" + versionProp.v)
+    "api"(notation + ":" + versionProp.v())
 
 fun DependencyConstraintHandlerScope.runtimev(
     notation: String,
     versionProp: String = notation.substringAfterLast(':')
 ) =
-    "runtime"(notation + ":" + versionProp.v)
+    "runtime"(notation + ":" + versionProp.v())
 
 javaPlatform {
     allowDependencies()
