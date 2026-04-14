@@ -40,7 +40,7 @@ val skipJavadoc by extra {
 }
 
 subprojects {
-    if (path == ":src:bom" ||path == ":src:bom2"  ) {
+    if (path == ":src:bom") {
         return@subprojects
     }
 
@@ -58,7 +58,7 @@ subprojects {
 
     dependencies {
         val api by configurations
-        api(platform(project(":src:bom2")))
+        api(platform(project(":src:bom")))
 
         if (!testsPresent) {
             // No tests => no dependencies required

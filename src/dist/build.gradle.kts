@@ -20,6 +20,8 @@ import com.github.vlsi.gradle.crlf.LineEndings
 import java.nio.file.Paths
 import de.undercouch.gradle.tasks.download.Download
 import de.undercouch.gradle.tasks.download.Verify
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint.strictly
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import java.io.File
 
 plugins {
@@ -32,7 +34,7 @@ plugins {
 val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 fun lib(alias: String): MinimalExternalModuleDependency =
-    catalog.findLibrary(alias).orElseThrow {
+    catalog.findDependency(alias).orElseThrow {
         GradleException("Library alias '$alias' not found in libs version catalog")
     }.get()
 
@@ -171,14 +173,14 @@ dependencies {
 
     // Extra dist JARs (versions from catalog, constraints from BOM where applicable)
     for (alias in extraLibs) {
-        implementation(lib(alias)) {
+        implementation(gav(alias)) {
             exclude(group = "org.apache.jmeter")
         }
     }
 
     // Plugin JARs → lib/ext (testCompileOnly so they don't pollute runtimeClasspath)
     for (alias in pluginAliases) {
-        testCompileOnly(lib(alias)) {
+        testCompileOnly(gav(alias)) {
             exclude(group = "org.apache.jmeter")
             exclude(group = "commons-io")
             exclude(group = "commons-collections")
@@ -391,8 +393,8 @@ val snapshotsRepoUrl: String by project
 val releasesRepoUrl: String by project
 val mavenUsername: String by project
 val mavenPassword: String by project
-val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
-val MVN_PASS = System.getenv("MVN_PASS") ?: mavenPassword
+//val MVN_USER = System.getenv("MVN_USER") ?: mavenUsername
+//val MVN_PASS = System.getenv("MVN_PASS") ?: mavenPassword
 val urlSite = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
 val resourcesDir = rootProject.rootDir
@@ -415,8 +417,8 @@ tasks.register<Download>("downloadArtifactZip") {
     quiet(false)
     connectTimeout(30000)
     readTimeout(30000)
-    username(MVN_USER)
-    password(MVN_PASS)
+//    username(MVN_USER)
+//    password(MVN_PASS)
     onlyIfModified(true)
     useETag(true)
     doFirst { downloadDir.mkdirs() }
@@ -465,8 +467,8 @@ tasks.register<Download>("forceDownloadArtifact") {
     src(urlSite)
     dest(zipFile)
     overwrite(true)
-    username(MVN_USER)
-    password(MVN_PASS)
+//    username(MVN_USER)
+//    password(MVN_PASS)
     doFirst { logger.lifecycle("Принудительное скачивание: $urlSite") }
 }
 
@@ -499,8 +501,8 @@ publishing {
         maven {
             url = uri(urlSite)
             credentials {
-                username = MVN_USER
-                password = MVN_PASS
+//                username = MVN_USER
+//                password = MVN_PASS
             }
         }
     }
