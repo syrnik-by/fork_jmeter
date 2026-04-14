@@ -1,0 +1,345 @@
+[versions]
+# App
+appversion = "1.0.0"
+
+# Build tools
+checkstyle = "8.35"
+errorprone = "2.4.0"
+jacoco = "0.8.5"
+spotbugs = "4.1.2"
+
+# Gradle plugins
+autostyle = "3.0"
+spotbugsPlugin = "4.5.0"
+vlsiReleasePlugins = "1.70"
+errorpronePlugin = "1.2.1"
+ideaExt = "0.5"
+apacheRat = "0.7.0"
+sonarqube = "3.0"
+
+# ── JMeter upstream ──
+jmeter = "5.4.3"
+
+# ── Основные зависимости ──
+groovy = "3.0.9"
+accessors-smart = "1.2"
+activemq = "5.16.0"
+apiguardian-api = "1.1.0"
+asm = "9.0"
+bouncycastle = "1.67"
+bsf = "2.4.0"
+bsh = "2.0b6"
+caffeine = "2.8.8"
+cglib-nodep = "3.2.12"
+commons-codec = "1.15"
+commons-collections = "3.2.2"
+commons-collections4 = "4.4"
+commons-dbcp2 = "2.8.0"
+commons-io = "2.8.0"
+commons-jexl = "2.1.1"
+commons-jexl3 = "3.1"
+commons-lang = "2.6"
+commons-lang3 = "3.11"
+commons-math3 = "3.6.1"
+commons-net = "3.7.2"
+commons-pool2 = "2.9.0"
+commons-text = "1.9"
+darklaf = "2.7.2"
+darklaf-extensions = "0.3.4"
+dec = "0.1.2"
+dnsjava = "2.1.9"
+equalsverifier = "3.4.2"
+freemarker = "2.3.30"
+ftplet-api = "1.1.1"
+ftpserver-core = "1.1.1"
+geronimo-jms = "1.1.1"
+hamcrest = "2.2"
+hamcrest-date = "2.0.7"
+hsqldb = "2.5.0"
+httpasyncclient = "4.1.4"
+httpclient = "4.5.12"
+httpcore = "4.4.13"
+httpcore-nio = "4.4.13"
+httpmime = "4.5.12"
+jackson = "2.10.5"
+jackson-databind = "2.10.5.1"
+javax-activation = "1.2.0"
+jcharts = "0.7.5"
+jdom = "1.1.3"
+jline = "3.19.0"
+jmespath = "0.5.0"
+jna = "5.5.0"
+jodd = "5.0.13"
+json-path = "2.4.0"
+json-smart = "2.3"
+jsoup = "1.13.1"
+jtidy = "r938"
+junit4 = "4.13.1"
+junit5 = "5.7.0"
+jxlayer = "3.0.4"
+log4j = "2.17.0"
+mail = "1.5.0-b01"
+miglayout = "5.2"
+mina-core = "2.0.19"
+mongo-java-driver = "2.11.3"
+neo4j-java-driver = "4.2.0"
+objenesis = "2.6"
+oro = "2.0.8"
+ph-commons = "9.5.1"
+ph-css = "6.2.3"
+rhino = "1.7.13"
+rsyntaxtextarea = "3.1.1"
+saxon-he = "9.9.1-8"
+slf4j = "1.7.30"
+spock-core = "2.0-M2-groovy-3.0"
+springframework = "4.3.17.RELEASE"
+svgSalamander = "1.1.2.4"
+tika = "1.24.1"
+velocity = "1.7"
+wiremock-jre8 = "2.24.1"
+xalan = "2.7.2"
+xercesImpl = "2.12.0"
+xml-apis = "1.4.01"
+xmlgraphics-commons = "2.3"
+xmlpull = "1.1.3.1"
+xpp3-min = "1.1.4c"
+xstream = "1.4.15"
+
+# ── Дополнительные JAR дистрибутива ──
+ojdbc6 = "11.2.0.4"
+pdfbox = "2.0.21"
+mssql-jdbc = "8.4.0.jre8"
+rabbitmq-amqp-client = "3.6.1"
+javatuples = "1.2"
+jsch = "0.1.56"
+hdrhistogram = "2.1.12"
+osgi-core = "6.0.0"
+ibm-mq = "9.0.4.0"
+darcula-bulenkov = "2021.7"
+
+# ── JMeter плагины ──
+jmeter-plugins-cmn = "0.7"
+jmeter-plugins-manager = "1.7"
+jmeter-plugins-casutg = "2.10"
+perfmon = "2.2.2"
+jmeter-plugins-tst = "2.5"
+cmdrunner = "2.2"
+jmeter-plugins-dummy = "0.4"
+jmeter-plugins-functions = "2.1"
+jmeter-plugins-redis = "0.5"
+jmeter-plugins-synthesis = "2.2"
+jmeter-plugins-xml = "0.1"
+jmeter-plugins-graphs-ggl = "2.0"
+bzm-random-csv = "0.8"
+bzm-wsc = "0.7"
+jmeter-plugins-ffw = "2.0"
+jmeter-plugins-fifo = "0.2"
+jmeter-plugins-graphs-basic = "2.0"
+jmeter-plugins-graphs-additional = "2.0"
+jmeter-websocket-samplers = "1.2.8"
+jmeter-prometheus-plugin = "0.6.0"
+bzm-http2 = "1.4"
+jmeter-iso8583 = "1.2"
+pack-listener = "2.07"
+jmeter-plugins-common-io = "0.2"
+jmeter-plugins-directory-listing = "0.1"
+jmeter-plugins-autostop = "0.1"
+jmeter-plugins-plancheck = "2.4"
+jmeter-plugins-prmctl = "0.4"
+jmeter-plugins-httpraw = "0.1"
+jmeter-plugins-dbmon = "0.1"
+jmeter-plugins-graphs-dist = "2.0"
+jmeter-plugins-cmd = "2.2"
+bzm-parallel = "0.11"
+jmeter-plugins-udp = "0.4"
+jmeter-wssecurity = "1.8"
+jmeter-plugins-emulators = "0.4"
+
+[libraries]
+# ── JMeter upstream modules ──
+jmeter-components         = { module = "org.apache.jmeter:ApacheJMeter_components",        version.ref = "jmeter" }
+jmeter-jorphan            = { module = "org.apache.jmeter:jorphan",                         version.ref = "jmeter" }
+jmeter-bolt               = { module = "org.apache.jmeter:ApacheJMeter_bolt",               version.ref = "jmeter" }
+jmeter-ftp                = { module = "org.apache.jmeter:ApacheJMeter_ftp",                version.ref = "jmeter" }
+jmeter-http               = { module = "org.apache.jmeter:ApacheJMeter_http",               version.ref = "jmeter" }
+jmeter-java               = { module = "org.apache.jmeter:ApacheJMeter_java",               version.ref = "jmeter" }
+jmeter-jdbc               = { module = "org.apache.jmeter:ApacheJMeter_jdbc",               version.ref = "jmeter" }
+jmeter-jms                = { module = "org.apache.jmeter:ApacheJMeter_jms",                version.ref = "jmeter" }
+jmeter-junit              = { module = "org.apache.jmeter:ApacheJMeter_junit",              version.ref = "jmeter" }
+jmeter-ldap               = { module = "org.apache.jmeter:ApacheJMeter_ldap",               version.ref = "jmeter" }
+jmeter-mail               = { module = "org.apache.jmeter:ApacheJMeter_mail",               version.ref = "jmeter" }
+jmeter-mongodb            = { module = "org.apache.jmeter:ApacheJMeter_mongodb",            version.ref = "jmeter" }
+jmeter-tcp                = { module = "org.apache.jmeter:ApacheJMeter_tcp",                version.ref = "jmeter" }
+
+# ── BOM-managed libs ──
+groovy-bom                = { module = "org.codehaus.groovy:groovy-bom",                    version.ref = "groovy" }
+tika-core                 = { module = "org.apache.tika:tika-core",                         version.ref = "tika" }
+tika-parsers              = { module = "org.apache.tika:tika-parsers",                      version.ref = "tika" }
+asm                       = { module = "org.ow2.asm:asm",                                    version.ref = "asm" }
+activemq-broker           = { module = "org.apache.activemq:activemq-broker",               version.ref = "activemq" }
+activemq-client           = { module = "org.apache.activemq:activemq-client",               version.ref = "activemq" }
+activemq-spring           = { module = "org.apache.activemq:activemq-spring",               version.ref = "activemq" }
+spring-context            = { module = "org.springframework:spring-context",                 version.ref = "springframework" }
+spring-beans              = { module = "org.springframework:spring-beans",                   version.ref = "springframework" }
+bsf                       = { module = "bsf:bsf",                                            version.ref = "bsf" }
+cglib-nodep               = { module = "cglib:cglib-nodep",                                  version.ref = "cglib-nodep" }
+jackson-annotations       = { module = "com.fasterxml.jackson.core:jackson-annotations",    version.ref = "jackson" }
+jackson-core              = { module = "com.fasterxml.jackson.core:jackson-core",            version.ref = "jackson" }
+jackson-databind          = { module = "com.fasterxml.jackson.core:jackson-databind",        version.ref = "jackson-databind" }
+rsyntaxtextarea           = { module = "com.fifesoft:rsyntaxtextarea",                       version.ref = "rsyntaxtextarea" }
+svgSalamander             = { module = "com.formdev:svgSalamander",                         version.ref = "svgSalamander" }
+caffeine                  = { module = "com.github.ben-manes.caffeine:caffeine",             version.ref = "caffeine" }
+wiremock-jre8             = { module = "com.github.tomakehurst:wiremock-jre8",               version.ref = "wiremock-jre8" }
+darklaf-core              = { module = "com.github.weisj:darklaf-core",                     version.ref = "darklaf" }
+darklaf-theme             = { module = "com.github.weisj:darklaf-theme",                    version.ref = "darklaf" }
+darklaf-property-loader   = { module = "com.github.weisj:darklaf-property-loader",          version.ref = "darklaf" }
+darklaf-extensions        = { module = "com.github.weisj:darklaf-extensions-rsyntaxarea",   version.ref = "darklaf-extensions" }
+ph-commons                = { module = "com.helger:ph-commons",                              version.ref = "ph-commons" }
+ph-css                    = { module = "com.helger:ph-css",                                  version.ref = "ph-css" }
+json-path                 = { module = "com.jayway.jsonpath:json-path",                      version.ref = "json-path" }
+miglayout-core            = { module = "com.miglayout:miglayout-core",                      version.ref = "miglayout" }
+miglayout-swing           = { module = "com.miglayout:miglayout-swing",                     version.ref = "miglayout" }
+javax-activation-sun      = { module = "com.sun.activation:javax.activation",               version.ref = "javax-activation" }
+xstream                   = { module = "com.thoughtworks.xstream:xstream",                  version.ref = "xstream" }
+commons-codec             = { module = "commons-codec:commons-codec",                        version.ref = "commons-codec" }
+commons-collections       = { module = "commons-collections:commons-collections",            version.ref = "commons-collections" }
+commons-io                = { module = "commons-io:commons-io",                              version.ref = "commons-io" }
+commons-lang              = { module = "commons-lang:commons-lang",                          version.ref = "commons-lang" }
+commons-net               = { module = "commons-net:commons-net",                            version.ref = "commons-net" }
+dnsjava                   = { module = "dnsjava:dnsjava",                                    version.ref = "dnsjava" }
+jmespath-core             = { module = "io.burt:jmespath-core",                             version.ref = "jmespath" }
+jmespath-jackson          = { module = "io.burt:jmespath-jackson",                          version.ref = "jmespath" }
+javax-activation-api      = { module = "javax.activation:javax.activation-api",             version.ref = "javax-activation" }
+mail                      = { module = "javax.mail:mail",                                    version.ref = "mail" }
+jcharts                   = { module = "jcharts:jcharts",                                    version.ref = "jcharts" }
+junit4                    = { module = "junit:junit",                                         version.ref = "junit4" }
+junit-jupiter-api         = { module = "org.junit.jupiter:junit-jupiter-api",               version.ref = "junit5" }
+junit-jupiter-params      = { module = "org.junit.jupiter:junit-jupiter-params",            version.ref = "junit5" }
+junit-jupiter-engine      = { module = "org.junit.jupiter:junit-jupiter-engine",            version.ref = "junit5" }
+junit-vintage-engine      = { module = "org.junit.vintage:junit-vintage-engine",            version.ref = "junit5" }
+accessors-smart           = { module = "net.minidev:accessors-smart",                        version.ref = "accessors-smart" }
+json-smart                = { module = "net.minidev:json-smart",                             version.ref = "accessors-smart" }
+jtidy                     = { module = "net.sf.jtidy:jtidy",                                 version.ref = "jtidy" }
+saxon-he                  = { module = "net.sf.saxon:Saxon-HE",                              version.ref = "saxon-he" }
+equalsverifier            = { module = "nl.jqno.equalsverifier:equalsverifier",              version.ref = "equalsverifier" }
+bsh                       = { module = "org.apache-extras.beanshell:bsh",                    version.ref = "bsh" }
+commons-collections4      = { module = "org.apache.commons:commons-collections4",            version.ref = "commons-collections4" }
+commons-dbcp2             = { module = "org.apache.commons:commons-dbcp2",                   version.ref = "commons-dbcp2" }
+commons-jexl3             = { module = "org.apache.commons:commons-jexl3",                   version.ref = "commons-jexl3" }
+commons-jexl              = { module = "org.apache.commons:commons-jexl",                    version.ref = "commons-jexl" }
+commons-lang3             = { module = "org.apache.commons:commons-lang3",                   version.ref = "commons-lang3" }
+commons-math3             = { module = "org.apache.commons:commons-math3",                   version.ref = "commons-math3" }
+commons-pool2             = { module = "org.apache.commons:commons-pool2",                   version.ref = "commons-pool2" }
+commons-text              = { module = "org.apache.commons:commons-text",                    version.ref = "commons-text" }
+ftplet-api                = { module = "org.apache.ftpserver:ftplet-api",                    version.ref = "ftplet-api" }
+ftpserver-core            = { module = "org.apache.ftpserver:ftpserver-core",                version.ref = "ftpserver-core" }
+geronimo-jms              = { module = "org.apache.geronimo.specs:geronimo-jms_1.1_spec",   version.ref = "geronimo-jms" }
+httpasyncclient           = { module = "org.apache.httpcomponents:httpasyncclient",          version.ref = "httpasyncclient" }
+httpclient                = { module = "org.apache.httpcomponents:httpclient",               version.ref = "httpclient" }
+httpcore-nio              = { module = "org.apache.httpcomponents:httpcore-nio",             version.ref = "httpcore-nio" }
+httpcore                  = { module = "org.apache.httpcomponents:httpcore",                 version.ref = "httpcore" }
+httpmime                  = { module = "org.apache.httpcomponents:httpmime",                 version.ref = "httpmime" }
+log4j-1-2-api             = { module = "org.apache.logging.log4j:log4j-1.2-api",            version.ref = "log4j" }
+log4j-api                 = { module = "org.apache.logging.log4j:log4j-api",                version.ref = "log4j" }
+log4j-core                = { module = "org.apache.logging.log4j:log4j-core",               version.ref = "log4j" }
+log4j-slf4j-impl          = { module = "org.apache.logging.log4j:log4j-slf4j-impl",         version.ref = "log4j" }
+mina-core                 = { module = "org.apache.mina:mina-core",                          version.ref = "mina-core" }
+velocity                  = { module = "org.apache.velocity:velocity",                       version.ref = "velocity" }
+xmlgraphics-commons       = { module = "org.apache.xmlgraphics:xmlgraphics-commons",         version.ref = "xmlgraphics-commons" }
+apiguardian-api           = { module = "org.apiguardian:apiguardian-api",                    version.ref = "apiguardian-api" }
+bcmail                    = { module = "org.bouncycastle:bcmail-jdk15on",                    version.ref = "bouncycastle" }
+bcpkix                    = { module = "org.bouncycastle:bcpkix-jdk15on",                    version.ref = "bouncycastle" }
+bcprov                    = { module = "org.bouncycastle:bcprov-jdk15on",                    version.ref = "bouncycastle" }
+dec                       = { module = "org.brotli:dec",                                     version.ref = "dec" }
+hamcrest-date             = { module = "org.exparity:hamcrest-date",                         version.ref = "hamcrest-date" }
+freemarker                = { module = "org.freemarker:freemarker",                          version.ref = "freemarker" }
+hamcrest                  = { module = "org.hamcrest:hamcrest",                              version.ref = "hamcrest" }
+hamcrest-core             = { module = "org.hamcrest:hamcrest-core",                         version.ref = "hamcrest" }
+hamcrest-library          = { module = "org.hamcrest:hamcrest-library",                      version.ref = "hamcrest" }
+hsqldb                    = { module = "org.hsqldb:hsqldb",                                  version.ref = "hsqldb" }
+jdom                      = { module = "org.jdom:jdom",                                      version.ref = "jdom" }
+jline                     = { module = "org.jline:jline",                                    version.ref = "jline" }
+jodd-core                 = { module = "org.jodd:jodd-core",                                 version.ref = "jodd" }
+jodd-lagarto              = { module = "org.jodd:jodd-lagarto",                              version.ref = "jodd" }
+jodd-log                  = { module = "org.jodd:jodd-log",                                  version.ref = "jodd" }
+jodd-props                = { module = "org.jodd:jodd-props",                                version.ref = "jodd" }
+jsoup                     = { module = "org.jsoup:jsoup",                                    version.ref = "jsoup" }
+mongo-java-driver         = { module = "org.mongodb:mongo-java-driver",                      version.ref = "mongo-java-driver" }
+rhino                     = { module = "org.mozilla:rhino",                                  version.ref = "rhino" }
+neo4j-java-driver         = { module = "org.neo4j.driver:neo4j-java-driver",                version.ref = "neo4j-java-driver" }
+objenesis                 = { module = "org.objenesis:objenesis",                            version.ref = "objenesis" }
+jcl-over-slf4j            = { module = "org.slf4j:jcl-over-slf4j",                          version.ref = "slf4j" }
+slf4j-api                 = { module = "org.slf4j:slf4j-api",                                version.ref = "slf4j" }
+spock-core                = { module = "org.spockframework:spock-core",                      version.ref = "spock-core" }
+oro                       = { module = "oro:oro",                                             version.ref = "oro" }
+xalan-serializer          = { module = "xalan:serializer",                                   version.ref = "xalan" }
+xalan                     = { module = "xalan:xalan",                                        version.ref = "xalan" }
+xercesImpl                = { module = "xerces:xercesImpl",                                  version.ref = "xercesImpl" }
+xml-apis                  = { module = "xml-apis:xml-apis",                                  version.ref = "xml-apis" }
+xmlpull                   = { module = "xmlpull:xmlpull",                                    version.ref = "xmlpull" }
+xpp3-min                  = { module = "xpp3:xpp3_min",                                     version.ref = "xpp3-min" }
+
+# ── Дистрибутив: доп. JAR ──
+jna                       = { module = "net.java.dev.jna:jna",                               version.ref = "jna" }
+jxlayer                   = { module = "org.swinglabs:jxlayer",                              version.ref = "jxlayer" }
+ojdbc6                    = { module = "com.oracle.database.jdbc:ojdbc6",                    version.ref = "ojdbc6" }
+pdfbox                    = { module = "org.apache.pdfbox:pdfbox",                           version.ref = "pdfbox" }
+mssql-jdbc                = { module = "com.microsoft.sqlserver:mssql-jdbc",                 version.ref = "mssql-jdbc" }
+rabbitmq-amqp-client      = { module = "com.rabbitmq:amqp-client",                          version.ref = "rabbitmq-amqp-client" }
+javatuples                = { module = "org.javatuples:javatuples",                          version.ref = "javatuples" }
+jsch                      = { module = "org.glassfish.external:jsch",                        version.ref = "jsch" }
+hdrhistogram              = { module = "org.hdrhistogram:HdrHistogram",                      version.ref = "hdrhistogram" }
+osgi-core                 = { module = "org.osgi:osgi.core",                                 version.ref = "osgi-core" }
+ibm-mq                    = { module = "com.ibm.mq:com.ibm.mq.allclient",                   version.ref = "ibm-mq" }
+darcula-bulenkov          = { module = "org.freeplane.bulenkov:darcula",                     version.ref = "darcula-bulenkov" }
+
+# ── JMeter плагины ──
+plugin-cmn                = { module = "kg.apc:jmeter-plugins-cmn-jmeter",                  version.ref = "jmeter-plugins-cmn" }
+plugin-manager            = { module = "kg.apc:jmeter-plugins-manager",                     version.ref = "jmeter-plugins-manager" }
+plugin-casutg             = { module = "kg.apc:jmeter-plugins-casutg",                      version.ref = "jmeter-plugins-casutg" }
+plugin-perfmon            = { module = "kg.apc:perfmon",                                     version.ref = "perfmon" }
+plugin-tst                = { module = "kg.apc:jmeter-plugins-tst",                         version.ref = "jmeter-plugins-tst" }
+plugin-cmdrunner          = { module = "kg.apc:cmdrunner",                                   version.ref = "cmdrunner" }
+plugin-dummy              = { module = "kg.apc:jmeter-plugins-dummy",                       version.ref = "jmeter-plugins-dummy" }
+plugin-functions          = { module = "kg.apc:jmeter-plugins-functions",                   version.ref = "jmeter-plugins-functions" }
+plugin-redis              = { module = "kg.apc:jmeter-plugins-redis",                       version.ref = "jmeter-plugins-redis" }
+plugin-synthesis          = { module = "kg.apc:jmeter-plugins-synthesis",                   version.ref = "jmeter-plugins-synthesis" }
+plugin-xml                = { module = "kg.apc:jmeter-plugins-xml",                         version.ref = "jmeter-plugins-xml" }
+plugin-graphs-ggl         = { module = "kg.apc:jmeter-plugins-graphs-ggl",                  version.ref = "jmeter-plugins-graphs-ggl" }
+plugin-bzm-csv            = { module = "com.blazemeter:jmeter-plugins-random-csv-data-set", version.ref = "bzm-random-csv" }
+plugin-bzm-wsc            = { module = "com.blazemeter:jmeter-plugins-wsc",                 version.ref = "bzm-wsc" }
+plugin-ffw                = { module = "kg.apc:jmeter-plugins-ffw",                         version.ref = "jmeter-plugins-ffw" }
+plugin-fifo               = { module = "kg.apc:jmeter-plugins-fifo",                        version.ref = "jmeter-plugins-fifo" }
+plugin-graphs-basic       = { module = "kg.apc:jmeter-plugins-graphs-basic",                version.ref = "jmeter-plugins-graphs-basic" }
+plugin-graphs-additional  = { module = "kg.apc:jmeter-plugins-graphs-additional",           version.ref = "jmeter-plugins-graphs-additional" }
+plugin-websocket          = { module = "net.luminis.jmeter:jmeter-websocket-samplers",      version.ref = "jmeter-websocket-samplers" }
+plugin-prometheus         = { module = "com.github.johrstrom:jmeter-prometheus-plugin",     version.ref = "jmeter-prometheus-plugin" }
+plugin-bzm-http2          = { module = "com.blazemeter:jmeter-bzm-http2",                   version.ref = "bzm-http2" }
+plugin-iso8583            = { module = "nz.co.breakpoint:jmeter-iso8583",                    version.ref = "jmeter-iso8583" }
+plugin-pack-listener      = { module = "cloud.testload:jmeter.pack-listener",               version.ref = "pack-listener" }
+plugin-common-io          = { module = "kg.apc:jmeter-plugins-common-io",                   version.ref = "jmeter-plugins-common-io" }
+plugin-dir-listing        = { module = "kg.apc:jmeter-plugins-directory-listing",           version.ref = "jmeter-plugins-directory-listing" }
+plugin-autostop           = { module = "kg.apc:jmeter-plugins-autostop",                    version.ref = "jmeter-plugins-autostop" }
+plugin-plancheck          = { module = "kg.apc:jmeter-plugins-plancheck",                   version.ref = "jmeter-plugins-plancheck" }
+plugin-prmctl             = { module = "kg.apc:jmeter-plugins-prmctl",                      version.ref = "jmeter-plugins-prmctl" }
+plugin-httpraw            = { module = "kg.apc:jmeter-plugins-httpraw",                     version.ref = "jmeter-plugins-httpraw" }
+plugin-dbmon              = { module = "kg.apc:jmeter-plugins-dbmon",                       version.ref = "jmeter-plugins-dbmon" }
+plugin-graphs-dist        = { module = "kg.apc:jmeter-plugins-graphs-dist",                 version.ref = "jmeter-plugins-graphs-dist" }
+plugin-cmd                = { module = "kg.apc:jmeter-plugins-cmd",                         version.ref = "jmeter-plugins-cmd" }
+plugin-bzm-parallel       = { module = "com.blazemeter:jmeter-parallel",                    version.ref = "bzm-parallel" }
+plugin-udp                = { module = "kg.apc:jmeter-plugins-udp",                         version.ref = "jmeter-plugins-udp" }
+plugin-wssecurity         = { module = "nz.co.breakpoint:jmeter-wssecurity",                version.ref = "jmeter-wssecurity" }
+plugin-emulators          = { module = "kg.apc:jmeter-plugins-emulators",                   version.ref = "jmeter-plugins-emulators" }
+
+[plugins]
+autostyle      = { id = "com.github.autostyle",                         version.ref = "autostyle" }
+spotbugs       = { id = "com.github.spotbugs",                          version.ref = "spotbugsPlugin" }
+vlsi-crlf      = { id = "com.github.vlsi.crlf",                        version.ref = "vlsiReleasePlugins" }
+vlsi-ext       = { id = "com.github.vlsi.gradle-extensions",           version.ref = "vlsiReleasePlugins" }
+vlsi-ide       = { id = "com.github.vlsi.ide",                         version.ref = "vlsiReleasePlugins" }
+vlsi-release   = { id = "com.github.vlsi.stage-vote-release",          version.ref = "vlsiReleasePlugins" }
+errorprone     = { id = "net.ltgt.errorprone",                         version.ref = "errorpronePlugin" }
+idea-ext       = { id = "org.jetbrains.gradle.plugin.idea-ext",        version.ref = "ideaExt" }
+apache-rat     = { id = "org.nosphere.apache.rat",                     version.ref = "apacheRat" }
+sonarqube      = { id = "org.sonarqube",                               version.ref = "sonarqube" }
+download       = { id = "de.undercouch.download",                      version = "4.1.2" }

@@ -19,7 +19,8 @@ plugins {
     `java-platform`
 }
 
-val String.v: String get() = rootProject.extra["$this.version"] as String
+val catalog = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
+fun String.v(): String = catalog.findVersion(this).get().requiredVersion
 
 // Note: Gradle allows to declare dependency on "bom" as "api",
 // and it makes the contraints to be transitively visible
@@ -44,7 +45,7 @@ javaPlatform {
 }
 
 dependencies {
-    api(platform("org.codehaus.groovy:groovy-bom:${"groovy".v}"))
+    api(platform("org.codehaus.groovy:groovy-bom:${"groovy".v()}"))
 
     // Parenthesis are needed here: https://github.com/gradle/gradle/issues/9248
     (constraints) {

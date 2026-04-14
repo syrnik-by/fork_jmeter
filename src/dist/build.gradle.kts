@@ -29,6 +29,8 @@ import java.nio.file.Paths
 ////import org.gradle.api.internal.TaskOutputsInternal
 import de.undercouch.gradle.tasks.download.Download
 import de.undercouch.gradle.tasks.download.Verify
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint.strictly
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import java.io.File
 import java.util.Date
 import java.text.SimpleDateFormat
@@ -60,6 +62,8 @@ configurations.runtimeClasspath {
     exclude(group = "javax.jms", module = "jms")
 }
 
+val jmeterVersion = libs.versions.jmeter.get()
+
 var jars = arrayOf(
     ":src:bshclient",
     ":src:core",
@@ -83,83 +87,74 @@ var jars = arrayOf(
 )
 
 var jarsDeps = arrayOf(
-    // "org.apache.jmeter:ApacheJMeter:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_components:5.4.3",
-    //"org.apache.jmeter:ApacheJMeter_functions:5.4.3",
-    "org.apache.jmeter:jorphan:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_bolt:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_ftp:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_http:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_java:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_jdbc:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_jms:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_junit:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_ldap:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_mail:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_mongodb:5.4.3",
-    "org.apache.jmeter:ApacheJMeter_tcp:5.4.3",
+    // Стоковые JMeter JAR — версия из libs.versions.toml
+    "org.apache.jmeter:ApacheJMeter_components:$jmeterVersion",
+    "org.apache.jmeter:jorphan:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_bolt:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_ftp:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_http:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_java:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_jdbc:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_jms:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_junit:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_ldap:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_mail:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_mongodb:$jmeterVersion",
+    "org.apache.jmeter:ApacheJMeter_tcp:$jmeterVersion",
 
-    //other deps???
-    "net.java.dev.jna:jna:5.5.0",
-    "org.swinglabs:jxlayer:3.0.4",
-    "com.oracle.database.jdbc:ojdbc6:11.2.0.4",
-    "org.apache.pdfbox:pdfbox:2.0.21",
-    "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre8",
-    "com.rabbitmq:amqp-client:3.6.1",
-    //  "org.bouncycastle:bcpg-jdk15on:1.70",
-    //  "org.bouncycastle:bcprov-jdk15on:1.70",
-    "org.apache.commons:commons-math3:3.6.1",
-    "org.javatuples:javatuples:1.2",
-    "org.glassfish.external:jsch:0.1.56",
-    "org.hdrhistogram:HdrHistogram:2.1.12",
-    "org.osgi:osgi.core:6.0.0",
-    "com.ibm.mq:com.ibm.mq.allclient:9.0.4.0",
-    "org.freeplane.bulenkov:darcula:2021.7"
+    // Дополнительные JAR дистрибутива — версии из libs.versions.toml
+    libs.jna.get().toString(),
+    libs.jxlayer.get().toString(),
+    libs.ojdbc6.get().toString(),
+    libs.pdfbox.get().toString(),
+    libs.mssql.jdbc.get().toString(),
+    libs.rabbitmq.amqp.client.get().toString(),
+    libs.javatuples.get().toString(),
+    libs.jsch.get().toString(),
+    libs.hdrhistogram.get().toString(),
+    libs.osgi.core.get().toString(),
+    libs.ibm.mq.get().toString(),
+    libs.darcula.bulenkov.get().toString()
 )
 
 //TODO remove doubles
 var plugins = arrayOf(
-    //plugins before 2022.02
-    "kg.apc:jmeter-plugins-cmn-jmeter:0.7",
-    "kg.apc:jmeter-plugins-manager:1.7",
-//    "kg.apc:jmeter-plugins-manager:1.4",
-    "kg.apc:jmeter-plugins-casutg:2.10",
-    "kg.apc:perfmon:2.2.2",
-    "kg.apc:jmeter-plugins-tst:2.5",
-    "kg.apc:cmdrunner:2.2",
-    "kg.apc:jmeter-plugins-casutg:2.10",
-    "kg.apc:jmeter-plugins-dummy:0.4",
-    "kg.apc:jmeter-plugins-functions:2.1",
-    "kg.apc:jmeter-plugins-redis:0.5",
-    "kg.apc:jmeter-plugins-synthesis:2.2",
-    "kg.apc:jmeter-plugins-xml:0.1",
-    "kg.apc:jmeter-plugins-graphs-ggl:2.0",
-    "com.blazemeter:jmeter-plugins-random-csv-data-set:0.8",
-    "com.blazemeter:jmeter-plugins-wsc:0.7",
-    "kg.apc:jmeter-plugins-ffw:2.0",
-    "kg.apc:jmeter-plugins-fifo:0.2",
-    "kg.apc:jmeter-plugins-functions:2.1",
-    "kg.apc:jmeter-plugins-graphs-basic:2.0",
-    "kg.apc:jmeter-plugins-graphs-additional:2.0",
-    "net.luminis.jmeter:jmeter-websocket-samplers:1.2.8",
-    "com.github.johrstrom:jmeter-prometheus-plugin:0.6.0",
-
-    "com.blazemeter:jmeter-bzm-http2:1.4",
-    "nz.co.breakpoint:jmeter-iso8583:1.2",
-    "cloud.testload:jmeter.pack-listener:2.07",
-    "kg.apc:jmeter-plugins-common-io:0.2",
-    "kg.apc:jmeter-plugins-directory-listing:0.1",
-    "kg.apc:jmeter-plugins-autostop:0.1",
-    "kg.apc:jmeter-plugins-plancheck:2.4",
-    "kg.apc:jmeter-plugins-prmctl:0.4",
-    "kg.apc:jmeter-plugins-httpraw:0.1",
-    "kg.apc:jmeter-plugins-dbmon:0.1",
-    "kg.apc:jmeter-plugins-graphs-dist:2.0",
-    // "kg.apc:jmeter-plugins-table-server:2.4",
-    "kg.apc:jmeter-plugins-cmd:2.2",
-    "com.blazemeter:jmeter-parallel:0.11",
-    "kg.apc:jmeter-plugins-udp:0.4",
-    "nz.co.breakpoint:jmeter-wssecurity:1.8" // https://jarcasting.ru/artifacts/nz.co.breakpoint/jmeter-wssecurity/
+    // Плагины JMeter — версии из libs.versions.toml
+    libs.plugin.cmn.get().toString(),
+    libs.plugin.manager.get().toString(),
+    libs.plugin.casutg.get().toString(),
+    libs.plugin.perfmon.get().toString(),
+    libs.plugin.tst.get().toString(),
+    libs.plugin.cmdrunner.get().toString(),
+    libs.plugin.dummy.get().toString(),
+    libs.plugin.functions.get().toString(),
+    libs.plugin.redis.get().toString(),
+    libs.plugin.synthesis.get().toString(),
+    libs.plugin.xml.get().toString(),
+    libs.plugin.graphs.ggl.get().toString(),
+    libs.plugin.bzm.csv.get().toString(),
+    libs.plugin.bzm.wsc.get().toString(),
+    libs.plugin.ffw.get().toString(),
+    libs.plugin.fifo.get().toString(),
+    libs.plugin.graphs.basic.get().toString(),
+    libs.plugin.graphs.additional.get().toString(),
+    libs.plugin.websocket.get().toString(),
+    libs.plugin.prometheus.get().toString(),
+    libs.plugin.bzm.http2.get().toString(),
+    libs.plugin.iso8583.get().toString(),
+    libs.plugin.pack.listener.get().toString(),
+    libs.plugin.common.io.get().toString(),
+    libs.plugin.dir.listing.get().toString(),
+    libs.plugin.autostop.get().toString(),
+    libs.plugin.plancheck.get().toString(),
+    libs.plugin.prmctl.get().toString(),
+    libs.plugin.httpraw.get().toString(),
+    libs.plugin.dbmon.get().toString(),
+    libs.plugin.graphs.dist.get().toString(),
+    libs.plugin.cmd.get().toString(),
+    libs.plugin.bzm.parallel.get().toString(),
+    libs.plugin.udp.get().toString(),
+    libs.plugin.wssecurity.get().toString()
 )
 
 //
@@ -188,65 +183,45 @@ val allTestClasses by configurations.creating {
 //// Note: you can inspect final classpath (list of jars in the binary distribution)  via
 //// gw dependencies --configuration runtimeClasspath
 dependencies {
+    // ── Модули форка (собираются из исходников) ──
     for (p in jars) {
         api(project(p))
     }
 
+    // ── Стоковые JMeter JAR ──
     for (z in jarsDeps) {
         implementation(z) {
-            //dependencies.
-            exclude(
-                group = "org.apache.jmeter" //, module = "ApacheJMeter_core"
-            )
+            exclude(group = "org.apache.jmeter")
         }
     }
 
+    // ── Плагины → lib/ext ──
     for (pl in plugins) {
         testCompileOnly(pl) {
-            //dependencies.
             exclude(group = "org.apache.jmeter")
             exclude(group = "commons-io")
             exclude(group = "commons-collections")
         }
     }
 
-    api(project(":plugins:jmeter-plugins-table-server-5.0"))
-    {
+    api(project(":plugins:jmeter-plugins-table-server-5.0")) {
         exclude(group = "org.apache.jmeter")
     }
 
-    implementation("org.apache.commons:commons-math3") {
-        version {
-            strictly("3.6.1")
-        }
+    // ── Strict version pinning (версии из libs.versions.toml) ──
+    implementation(libs.commons.math3) {
+        version { strictly(libs.versions.commons.math3.get()) }
+    }
+    implementation(libs.jline) {
+        version { strictly(libs.versions.jline.get()) }
+    }
+    implementation(libs.commons.io) {
+        version { strictly(libs.versions.commons.io.get()) }
     }
 
-    implementation("org.jline:jline") {
-        version {
-            strictly("3.19.0")
-        }
-    }
-
-    implementation("commons-io:commons-io") {
-        version {
-            strictly("2.8.0")
-        }
-    }
-
-    //  allTestClasses(project(p, "testClasses"))
-
-
-    //  binLicense(project(":src:licenses", "binLicense"))
-    //  srcLicense(project(":src:licenses", "srcLicense"))
     generatorJar(project(":src:generator", "archives"))
-    ///  junitSampleJar(project(":src:protocol:junit-sample", "archives"))
-
-    // buildDocs(platform(project(":src:bom")))
-    // buildDocs("org.apache.velocity:velocity")
-    // buildDocs("commons-lang:commons-lang")
-    //  buildDocs("org.apache.commons:commons-collections4")
-    //  buildDocs("org.jdom:jdom")
 }
+
 //
 tasks.named(BasePlugin.CLEAN_TASK_NAME).configure {
     doLast {

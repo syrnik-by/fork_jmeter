@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 pluginManagement {
 
     plugins {

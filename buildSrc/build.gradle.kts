@@ -20,14 +20,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     dependencies {
-        classpath("org.gradle.kotlin:gradle-kotlin-dsl-plugins:1.4.9")
         classpath("com.github.autostyle:autostyle-plugin-gradle:3.0")
     }
 }
 
 plugins {
     java
-    // `kotlin-dsl` apply false
+     `kotlin-dsl` apply false
     // id("com.github.autostyle")
 }
 
