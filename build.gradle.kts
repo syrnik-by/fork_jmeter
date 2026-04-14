@@ -84,28 +84,14 @@ allprojects {
     }
 }
 
-// Wire BOM to every Java subproject that is NOT the BOM itself.
-//
-// IMPORTANT: use "api" (not "implementation") for the platform dependency.
-// "implementation" platform constraints are NOT exported to consumers:
-//   :src:dist depends on :src:core, and when resolving :src:dist's runtimeClasspath
-//   Gradle sees :src:core's transitive deps (e.g. bsf:bsf) — but the version
-//   constraints from :src:core's "implementation" platform are invisible at that
-//   point, resulting in "Could not find bsf:bsf:." (empty version).
-// "api" platform exports the constraints transitively so any consumer of :src:core
-//   also benefits from the BOM version pins.
-//
-// Use plugins.withId("java-library") instead of plugins.withType<JavaPlugin> to
-// ensure the "api" configuration is fully registered before we try to use it.
-// plugins.withType<JavaPlugin> fires as soon as JavaPlugin is added to the container,
-// which can be before java-library finishes registering the "api" configuration —
-// causing "Configuration with name 'api' not found".
 subprojects {
     val bomProject = ":src:bom"
     if (path != bomProject) {
-        plugins.withId("java-library") {
-            dependencies {
-                add("api", platform(project(bomProject)))
+        afterEvaluate {
+            plugins.withType<JavaPlugin> {
+                dependencies {
+                    add("api", platform(project(bomProject)))
+                }
             }
         }
     }
