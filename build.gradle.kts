@@ -87,11 +87,13 @@ allprojects {
 subprojects {
     val bomProject = ":src:bom"
     if (path != bomProject) {
-        afterEvaluate {
-            plugins.withType<JavaPlugin> {
-                dependencies {
-                    add("api", platform(project(bomProject)))
-                }
+        // Use plugins.withType<JavaPlugin> without afterEvaluate so the BOM platform
+        // is added as soon as the java (or java-library) plugin is applied.
+        // Use "implementation" instead of "api" because "api" only exists in modules
+        // with the java-library plugin; "implementation" is available in all Java modules.
+        plugins.withType<JavaPlugin> {
+            dependencies {
+                add("implementation", platform(project(bomProject)))
             }
         }
     }
