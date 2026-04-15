@@ -1,0 +1,193 @@
+/*
+ * gradle/dist.gradle
+ *
+ * Сборка дистрибутива:
+ *   populateLibs      — разложить JAR по CopySpec-ам (lib/, lib/ext/, bin/)
+ *   copyLibs          — Sync lib/
+ *   copyBinLibs       — Copy bin/
+ *   createDist        — lifecycle: dependsOn copyLibs + copyBinLibs
+ *   distZip / distTar — архивы дистрибутива для пользователей
+ *
+ * Зависит от переменных, объявленных в gradle/dependencies.gradle:
+ *   pluginAliases, jars, lib(), ver(), gav()
+ * Зависит от конфигураций:
+ *   runtimeClasspath, pluginClasspath, generatorJar, binLicense
+ */
+
+import com.github.vlsi.gradle.crlf.CrLfSpec
+import com.github.vlsi.gradle.crlf.LineEndings
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+
+// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────────
+ext.libsSpec = copySpec()
+ext.libsExt  = copySpec()
+ext.binLibs  = copySpec()
+
+def populateLibs = tasks.register('populateLibs') {
+    dependsOn configurations.runtimeClasspath
+    doLast {
+        def launcherProject  = project(':src:launcher').path
+        def bshclientProject = project(':src:bshclient').path
+        def jorphanProject   = ':src:jorphan'
+
+        def pluginModuleIds = pluginAliases.collect { alias ->
+            def d = lib(alias)
+            "${d.module.group}:${d.module.name}"
+        }.toSet()
+
+        def pluginIds = configurations.pluginClasspath
+            .resolvedConfiguration.resolvedArtifacts
+            .collect { "${it.moduleVersion.id.group}:${it.moduleVersion.id.name}" }
+            .toSet()
+
+        configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts.each { dep ->
+            def compId = dep.id.componentIdentifier
+            if (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild()) {
+                def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+                if (moduleId in pluginIds) libsExt.from(dep.file)
+                else                       libsSpec.from(dep.file)
+                return
+            }
+            def target
+            switch (compId.projectPath) {
+                case launcherProject:   target = binLibs;  break
+                case jorphanProject:
+                case bshclientProject:  target = libsSpec; break
+                default:                target = libsExt;  break
+            }
+            target.from(dep.file) { rename { dep.name + '.' + dep.extension } }
+        }
+
+        configurations.pluginClasspath.resolvedConfiguration.resolvedArtifacts.each { dep ->
+            def compId   = dep.id.componentIdentifier
+            def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
+            if (moduleId in pluginIds && (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild())) {
+                libsExt.from(dep.file)
+            } else if (!(moduleId in pluginIds)) {
+                libsSpec.from(dep.file)
+            }
+        }
+    }
+}
+
+libsSpec.from(populateLibs)
+libsExt.from(populateLibs)
+binLibs.from(populateLibs)
+
+// ── copyLibs / copyBinLibs ─────────────────────────────────────────────────────
+def copyLibs = tasks.register('copyLibs', Sync) {
+    rootSpec.into("${rootDir}/lib")
+    with libsSpec
+    preserve {
+        include '**/*.txt'
+        include 'ext/*.jar'
+        exclude 'ext/ApacheJMeter*.jar'
+    }
+    into('ext') {
+        with libsExt
+        from(files(configurations.generatorJar)) {
+            rename { 'ApacheJMeter_generator.jar' }
+        }
+    }
+}
+
+def copyBinLibs = tasks.register('copyBinLibs', Copy) {
+    rootSpec.into("${rootDir}/bin")
+    with binLibs
+}
+
+// ── createDist ──────────────────────────────────────────────────────────────────
+tasks.register('createDist') {
+    group       = LifecycleBasePlugin.BUILD_GROUP
+    description = 'Собирает fork JAR и раскладывает их в lib/ и bin/'
+    dependsOn copyLibs, copyBinLibs
+}
+
+// ── Docs helpers ─────────────────────────────────────────────────────────────────
+def xdocs = "${rootDir}/xdocs"
+
+def docCssAndImages = { CopySpec spec ->
+    spec.from(xdocs) {
+        include '.htaccess'
+        include 'css/**'
+        include 'images/**'
+    }
+}
+
+def printableDocumentation = { CopySpec spec ->
+    spec.into('docs') { docCssAndImages(delegate) }
+}
+
+def excludeLicenseFromSourceRelease = { CopySpec spec ->
+    spec.exclude 'licenses/**'
+    spec.exclude 'LICENSE'
+}
+
+def baseFolder = "apache-jmeter-${rootProject.version}"
+
+def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
+    group       = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = 'Генерирует агрегированный Javadoc для всех fork-модулей'
+    def sourceSets = jars.collect { project(it).sourceSets.main }
+    classpath      = files(sourceSets.collect { ss -> ss.collect { it.output + it.compileClasspath } })
+    source(sourceSets.collect { ss -> ss.collect { it.allJava } })
+    destinationDir = file("${buildDir}/docs/javadocAggregate")
+}
+
+def javadocsSpec = copySpec { from(javadocAggregate) }
+
+// binaryLayout выставляется через ext, чтобы была доступна в publish.gradle
+ext.binaryLayout = { CrLfSpec crlfSpec ->
+    crlfSpec.copySpec {
+        into(baseFolder) {
+            from files(configurations.binLicense)
+            from(rootDir) {
+                exclude 'bin/testfiles'
+                exclude 'bin/rmi_keystore.jks'
+                include 'bin/**'
+                include 'lib/ext/**'
+                include 'lib/junit/**'
+                include 'extras/**'
+                include 'README.md'
+                excludeLicenseFromSourceRelease(delegate)
+            }
+            into('bin') { with binLibs }
+            into('lib') {
+                with libsSpec
+                into('ext') { with libsExt }
+            }
+            printableDocumentation(delegate)
+            into('docs/api') { with javadocsSpec }
+        }
+    }
+}
+
+// ── skipDist guard ─────────────────────────────────────────────────────────────────
+def skipDist = {
+    def extProps = rootProject.extensions.extraProperties
+    if (extProps.has('skipDist')) return extProps.get('skipDist') as boolean
+    def prop = rootProject.findProperty('skipDist')
+    if (prop == null) return false
+    return !(prop as String).equalsIgnoreCase('false')
+}()
+
+def distributionGroup = 'distribution'
+
+if (!skipDist) {
+    ['binary', 'source'].each { type ->
+        [Zip, Tar].each { archiveClass ->
+            def taskName = "dist${archiveClass.simpleName}${type == 'binary' ? '' : type.capitalize()}"
+            tasks.register(taskName, archiveClass) {
+                dependsOn createDist
+                def eol = (archiveClass == Tar) ? LineEndings.LF : LineEndings.CRLF
+                group       = distributionGroup
+                description = "Создаёт $type дистрибутив"
+                if (it instanceof Tar) compression = Compression.GZIP
+                archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
+                archiveVersion  = ''
+                def spec = new CrLfSpec(eol)
+                with binaryLayout(spec)
+            }
+        }
+    }
+}
