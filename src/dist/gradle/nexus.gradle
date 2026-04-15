@@ -1,23 +1,31 @@
 /*
  * gradle/nexus.gradle
  *
- * Работа с Nexus RAW bundle:
+ * Вся работа с Nexus:
+ *
+ *   [RAW bundle]
  *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/
  *   pushLibsBundle  — упаковать lib/ + bin/ и загрузить в Nexus RAW
  *
- * Credentials берутся из gradle.properties (или env MVN_USER / MVN_PASS).
- * В gradle.properties добавить (файл в .gitignore!):
+ *   [Maven publish]
+ *   publishAll      — одна кнопка: createDist → assembleArtifact → publish
+ *
+ * Credentials берутся из gradle.properties (файл в .gitignore!):
  *   nexusRawRepoUrl=http://nexus:8081/repository/jmeter-raw/
  *   snapshotsRepoUrl=http://nexus:8081/repository/jmeter-snapshots/
  *   releasesRepoUrl=http://nexus:8081/repository/jmeter-releases/
  *   mavenUsername=deployer
  *   mavenPassword=secret
+ *
+ * Либо через env-переменные: MVN_USER / MVN_PASS
  */
 
 // ── Credentials ───────────────────────────────────────────────────────────────
-def nexusRawRepoUrl = project.findProperty('nexusRawRepoUrl') ?: ''
-def mavenUsername   = project.findProperty('mavenUsername')   ?: ''
-def mavenPassword   = project.findProperty('mavenPassword')   ?: ''
+def nexusRawRepoUrl  = project.findProperty('nexusRawRepoUrl')  ?: ''
+def snapshotsRepoUrl = project.findProperty('snapshotsRepoUrl') ?: ''
+def releasesRepoUrl  = project.findProperty('releasesRepoUrl')  ?: ''
+def mavenUsername    = project.findProperty('mavenUsername')    ?: ''
+def mavenPassword    = project.findProperty('mavenPassword')    ?: ''
 
 def MVN_USER = System.getenv('MVN_USER') ?: mavenUsername
 def MVN_PASS = System.getenv('MVN_PASS') ?: mavenPassword
@@ -26,20 +34,17 @@ def MVN_PASS = System.getenv('MVN_PASS') ?: mavenPassword
 def BUNDLE_NAME = 'jmeter-libs.zip'
 def bundleUrl   = "${nexusRawRepoUrl}${BUNDLE_NAME}"
 
-// Expose dirs to build.gradle (used in clean task)
+// Expose dirs — используются в clean таске build.gradle
 ext.downloadDir    = file("${buildDir}/downloaded")
 ext.unpackedDir    = file("${buildDir}/unpacked")
 ext.bundleStageDir = file("${buildDir}/bundle-stage")
 
 def bundleFile = file("${downloadDir}/${BUNDLE_NAME}")
 
-// ── pullLibsBundle ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  RAW BUNDLE — pull
+// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * [internal] Скачивает bundle jmeter-libs.zip из Nexus RAW через HttpURLConnection.
- * Используем plain HTTP вместо de.undercouch.download, потому что классы плагина
- * недоступны в apply-from скриптах в Gradle 7.x.
- */
 tasks.register('downloadLibsBundle') {
     description = '[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW'
     outputs.file bundleFile
@@ -47,7 +52,7 @@ tasks.register('downloadLibsBundle') {
         downloadDir.mkdirs()
         if (bundleUrl.empty) {
             throw new GradleException(
-                "nexusRawRepoUrl не задан. Добавьте его в gradle.properties или передайте -PnexusRawRepoUrl=..."
+                'nexusRawRepoUrl не задан. Добавьте его в gradle.properties или передайте -PnexusRawRepoUrl=...'
             )
         }
         logger.lifecycle("Скачивание ${bundleUrl} -> ${bundleFile}")
@@ -101,7 +106,10 @@ tasks.register('pullLibsBundle') {
     doLast { logger.lifecycle('pullLibsBundle завершён') }
 }
 
-// ── pushLibsBundle ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  RAW BUNDLE — push
+// ─────────────────────────────────────────────────────────────────────────────
+
 tasks.register('packLibsBundle', Zip) {
     description          = '[internal] Упаковывает текущие lib/ + bin/ в ZIP'
     archiveFileName      = BUNDLE_NAME
@@ -147,4 +155,41 @@ tasks.register('pushLibsBundle') {
             conn.disconnect()
         }
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MAVEN PUBLISH
+// ─────────────────────────────────────────────────────────────────────────────
+
+def artifactId      = 'nt_master'
+def artifactVersion = (project.findProperty('version') ?: project.findProperty('appversion') ?: '1.0.0') as String
+def urlSite         = artifactVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+group = 'ru.nt_master'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId    = 'ru.nt_master'
+            artifactId = artifactId
+            version    = artifactVersion
+            artifact tasks.named('assembleArtifact')
+        }
+    }
+    repositories {
+        maven {
+            url = uri(urlSite)
+            credentials {
+                username = MVN_USER
+                password = MVN_PASS
+            }
+        }
+    }
+}
+
+// publishAll — одна кнопка: createDist → assembleArtifact → publish в Nexus Maven
+tasks.register('publishAll') {
+    group       = 'release'
+    description = 'createDist → assembleArtifact → publish в Nexus Maven'
+    dependsOn   'assembleArtifact', 'publish'
 }

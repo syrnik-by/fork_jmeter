@@ -21,12 +21,11 @@
 //  Этот файл — "оглавление" проекта:
 //    - plugins, конфигурации, зависимости
 //    - apply from: подключает реализацию из gradle/
-//    - lifecycle-точки входа (runGui, assembleArtifact, publishAll, release)
+//    - lifecycle-таски: runGui (разработчик), release (CI/CD)
 //
-//  Логика разбита на три файла:
-//    gradle/nexus.gradle   — работа с Nexus RAW bundle (pullLibsBundle / pushLibsBundle)
-//    gradle/dist.gradle    — populateLibs, copyLibs, createDist, distZip/Tar, docs-helpers
-//    gradle/publish.gradle — maven-publish конфиг + credentials + репо
+//  Структура gradle/:
+//    gradle/nexus.gradle  — Nexus RAW bundle (pull/push) + Maven publish
+//    gradle/dist.gradle   — populateLibs → createDist → assembleArtifact → distZip/Tar
 // ─────────────────────────────────────────────────────────────────────────────
 
 plugins {
@@ -38,7 +37,6 @@ plugins {
 
 apply from: 'gradle/nexus.gradle'
 apply from: 'gradle/dist.gradle'
-apply from: 'gradle/publish.gradle'
 
 // ── Version catalog helpers ───────────────────────────────────────────────────
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
@@ -251,7 +249,6 @@ dependencies {
         exclude group: 'org.apache.jmeter'
     }
 
-    // Strict version pinning
     implementation(gav('commons-math3')) { version { strictly ver('commons-math3') } }
     implementation(gav('jline'))         { version { strictly ver('jline') } }
     implementation(gav('commons-io'))    { version { strictly ver('commons-io') } }
@@ -260,10 +257,10 @@ dependencies {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  LIFECYCLE TASKS — точки входа (детали реализации — в gradle/*.gradle)
+//  LIFECYCLE TASKS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── runGui ─────────────────────────────────────────────────────────────────────
+// ── runGui — для разработчика ─────────────────────────────────────────────────
 tasks.register('runGui', JavaExec) {
     group       = 'Development'
     description = 'Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI'
@@ -298,23 +295,16 @@ tasks.register('runGui', JavaExec) {
     }
 }
 
-// ── assembleArtifact — собирает ZIP для публикации в Nexus Maven ──────────────
-//    Реализация в gradle/publish.gradle, здесь видна как lifecycle-точка входа.
-//    Зависит от: createDist (из dist.gradle) + конфигурации publishing (из publish.gradle)
-//    Для запуска вручную из IDEA: Gradle → release → assembleArtifact
-
-// ── publishAll — одна кнопка: createDist → assembleArtifact → publish ─────────
-//    Реализация в gradle/publish.gradle.
-//    Для запуска вручную из IDEA: Gradle → release → publishAll
-
-// ── release — полный цикл: сборка + публикация + дистрибутив ─────────────────
+// ── release — для CI/CD ───────────────────────────────────────────────────────
+//    distZip  (из dist.gradle)    — архив для пользователей
+//    publishAll (из nexus.gradle) — публикация в Nexus Maven
 tasks.register('release') {
     group       = 'release'
-    description = 'Полный цикл: createDist → distZip → assembleArtifact → publish'
+    description = 'Полный цикл: createDist → distZip + assembleArtifact → publishAll'
     dependsOn   'distZip', 'publishAll'
 }
 
-// ── Clean ──────────────────────────────────────────────────────────────────────
+// ── Clean ─────────────────────────────────────────────────────────────────────
 tasks.named(BasePlugin.CLEAN_TASK_NAME) {
     doLast {
         delete downloadDir

@@ -6,9 +6,10 @@
  *   copyLibs          — Sync lib/
  *   copyBinLibs       — Copy bin/
  *   createDist        — lifecycle: dependsOn copyLibs + copyBinLibs
+ *   assembleArtifact  — финальная сборка продукта: ZIP для публикации в Nexus Maven
  *   distZip / distTar — архивы дистрибутива для пользователей
  *
- * Зависит от переменных, объявленных в gradle/dependencies.gradle:
+ * Зависит от переменных, объявленных в build.gradle:
  *   pluginAliases, jars, lib(), ver(), gav()
  * Зависит от конфигураций:
  *   runtimeClasspath, pluginClasspath, generatorJar, binLicense
@@ -18,7 +19,7 @@ import com.github.vlsi.gradle.crlf.CrLfSpec
 import com.github.vlsi.gradle.crlf.LineEndings
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
-// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────────
+// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
 ext.libsSpec = copySpec()
 ext.libsExt  = copySpec()
 ext.binLibs  = copySpec()
@@ -96,14 +97,36 @@ def copyBinLibs = tasks.register('copyBinLibs', Copy) {
     with binLibs
 }
 
-// ── createDist ──────────────────────────────────────────────────────────────────
+// ── createDist ────────────────────────────────────────────────────────────────
 tasks.register('createDist') {
     group       = LifecycleBasePlugin.BUILD_GROUP
     description = 'Собирает fork JAR и раскладывает их в lib/ и bin/'
     dependsOn copyLibs, copyBinLibs
 }
 
-// ── Docs helpers ─────────────────────────────────────────────────────────────────
+// ── assembleArtifact — финальная сборка продукта ──────────────────────────────
+//    ZIP дистрибутива для публикации в Nexus Maven.
+//    Для ручного запуска из IDEA: Gradle → release → assembleArtifact
+def artifactId      = project.findProperty('artifactId')      ?: 'nt_master'
+def artifactVersion = (project.findProperty('version') ?: project.findProperty('appversion') ?: '1.0.0') as String
+
+tasks.register('assembleArtifact', Zip) {
+    group       = 'release'
+    description = 'Финальная сборка продукта: ZIP дистрибутива для публикации в Nexus Maven'
+    dependsOn   'pullLibsBundle', 'createDist'
+
+    archiveBaseName         = artifactId
+    archiveVersion          = artifactVersion
+    destinationDirectory    = layout.buildDirectory.dir('distr')
+
+    from(rootProject.rootDir) {
+        include 'bin/**'
+        include 'lib/**'
+        include 'extras/**'
+    }
+}
+
+// ── Docs helpers ──────────────────────────────────────────────────────────────
 def xdocs = "${rootDir}/xdocs"
 
 def docCssAndImages = { CopySpec spec ->
@@ -136,8 +159,8 @@ def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
 
 def javadocsSpec = copySpec { from(javadocAggregate) }
 
-// binaryLayout выставляется через ext, чтобы была доступна в publish.gradle
-ext.binaryLayout = { CrLfSpec crlfSpec ->
+// binaryLayout — доступен для distZip / distTar ниже
+def binaryLayout = { CrLfSpec crlfSpec ->
     crlfSpec.copySpec {
         into(baseFolder) {
             from files(configurations.binLicense)
@@ -162,7 +185,7 @@ ext.binaryLayout = { CrLfSpec crlfSpec ->
     }
 }
 
-// ── skipDist guard ─────────────────────────────────────────────────────────────────
+// ── skipDist guard ────────────────────────────────────────────────────────────
 def skipDist = {
     def extProps = rootProject.extensions.extraProperties
     if (extProps.has('skipDist')) return extProps.get('skipDist') as boolean
@@ -171,8 +194,7 @@ def skipDist = {
     return !(prop as String).equalsIgnoreCase('false')
 }()
 
-def distributionGroup = 'distribution'
-
+// ── distZip / distTar — архивы дистрибутива для пользователей ────────────────
 if (!skipDist) {
     ['binary', 'source'].each { type ->
         [Zip, Tar].each { archiveClass ->
@@ -180,7 +202,7 @@ if (!skipDist) {
             tasks.register(taskName, archiveClass) {
                 dependsOn createDist
                 def eol = (archiveClass == Tar) ? LineEndings.LF : LineEndings.CRLF
-                group       = distributionGroup
+                group       = 'distribution'
                 description = "Создаёт $type дистрибутив"
                 if (it instanceof Tar) compression = Compression.GZIP
                 archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
