@@ -18,15 +18,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  src/dist/build.gradle  (Groovy DSL)
 //
+//  Этот файл — "оглавление" проекта:
+//    - plugins, конфигурации, зависимости
+//    - apply from: подключает реализацию из gradle/
+//    - lifecycle-точки входа (runGui, assembleArtifact, publishAll, release)
+//
 //  Логика разбита на три файла:
-//    gradle/nexus.gradle    — работа с Nexus RAW bundle (pull / push)
-//    gradle/publish.gradle  — maven-publish + assembleArtifact + publishAll
-//    build.gradle (этот)    — зависимости, конфигурации, populateLibs,
-//                            createDist, runGui, clean, docs-helpers
+//    gradle/nexus.gradle   — работа с Nexus RAW bundle (pullLibsBundle / pushLibsBundle)
+//    gradle/dist.gradle    — populateLibs, copyLibs, createDist, distZip/Tar, docs-helpers
+//    gradle/publish.gradle — maven-publish конфиг + credentials + репо
 // ─────────────────────────────────────────────────────────────────────────────
-
-import com.github.vlsi.gradle.crlf.CrLfSpec
-import com.github.vlsi.gradle.crlf.LineEndings
 
 plugins {
     id 'java'
@@ -36,9 +37,10 @@ plugins {
 }
 
 apply from: 'gradle/nexus.gradle'
+apply from: 'gradle/dist.gradle'
 apply from: 'gradle/publish.gradle'
 
-// ── Version catalog helpers ──────────────────────────────────────────────
+// ── Version catalog helpers ───────────────────────────────────────────────────
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
 def lib = { String alias ->
@@ -58,10 +60,10 @@ def gav = { String alias ->
     "${d.module.group}:${d.module.name}:${d.versionConstraint.requiredVersion}"
 }
 
-// ── Versions ────────────────────────────────────────────────────────────────
+// ── Versions ──────────────────────────────────────────────────────────────────
 def jmeterVersion = ver('jmeter')
 
-// ── resolutionStrategy ─────────────────────────────────────────────────────────────
+// ── resolutionStrategy ────────────────────────────────────────────────────────
 configurations.all {
     resolutionStrategy.eachDependency { details ->
         def g = details.requested.group
@@ -153,7 +155,7 @@ configurations.all {
     }
 }
 
-// ── Configurations (excludes) ──────────────────────────────────────────────
+// ── Configurations (excludes) ─────────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude group: 'org.apache.jmeter', module: 'bom'
     exclude group: '',                  module: 'commons-pool2'
@@ -169,7 +171,7 @@ def jars = [
     ':src:launcher'
 ]
 
-// ── Upstream JMeter JARs ─────────────────────────────────────────────────────
+// ── Upstream JMeter JARs ──────────────────────────────────────────────────────
 def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_components:${jmeterVersion}",
     "org.apache.jmeter:jorphan:${jmeterVersion}",
@@ -186,14 +188,14 @@ def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_tcp:${jmeterVersion}"
 ]
 
-// ── Extra dist JARs ───────────────────────────────────────────────────────────────
+// ── Extra dist JARs ───────────────────────────────────────────────────────────
 def extraLibs = [
     'jna', 'jxlayer', 'ojdbc6', 'pdfbox', 'mssql-jdbc',
     'rabbitmq-amqp-client', 'javatuples', 'jsch',
     'hdrhistogram', 'osgi-core', 'ibm-mq', 'darcula-bulenkov'
 ]
 
-// ── Plugin JARs ─────────────────────────────────────────────────────────────────
+// ── Plugin JARs ───────────────────────────────────────────────────────────────
 def pluginAliases = [
     'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
     'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
@@ -207,7 +209,7 @@ def pluginAliases = [
     'plugin-udp', 'plugin-wssecurity'
 ]
 
-// ── Extra configurations ─────────────────────────────────────────────────────
+// ── Extra configurations ──────────────────────────────────────────────────────
 configurations {
     buildDocs     { canBeConsumed = false }
     generatorJar  { canBeConsumed = false }
@@ -225,7 +227,7 @@ configurations {
     }
 }
 
-// ── Dependencies ────────────────────────────────────────────────────────────────
+// ── Dependencies ──────────────────────────────────────────────────────────────
 dependencies {
     implementation platform(project(':src:bom'))
 
@@ -257,101 +259,18 @@ dependencies {
     generatorJar project(path: ':src:generator', configuration: 'archives')
 }
 
-// ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────────
-def libsSpec = copySpec()
-def libsExt  = copySpec()
-def binLibs  = copySpec()
+// ─────────────────────────────────────────────────────────────────────────────
+//  LIFECYCLE TASKS — точки входа (детали реализации — в gradle/*.gradle)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// pluginModuleIds вычисляется один раз внутри doLast — конфигурации уже разрешены
-def populateLibs = tasks.register('populateLibs') {
-    dependsOn configurations.runtimeClasspath
-    doLast {
-        def launcherProject  = project(':src:launcher').path
-        def bshclientProject = project(':src:bshclient').path
-        def jorphanProject   = ':src:jorphan'
-
-        // Вычисляем pluginModuleIds здесь — конфигурации уже разрешены на этом этапе
-        def pluginModuleIds = pluginAliases.collect { alias ->
-            def d = lib(alias)
-            "${d.module.group}:${d.module.name}"
-        }.toSet()
-
-        def pluginIds = configurations.pluginClasspath
-            .resolvedConfiguration.resolvedArtifacts
-            .collect { "${it.moduleVersion.id.group}:${it.moduleVersion.id.name}" }
-            .toSet()
-
-        configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts.each { dep ->
-            def compId = dep.id.componentIdentifier
-            if (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild()) {
-                def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
-                if (moduleId in pluginIds) libsExt.from(dep.file)
-                else                       libsSpec.from(dep.file)
-                return
-            }
-            def target
-            switch (compId.projectPath) {
-                case launcherProject:   target = binLibs;  break
-                case jorphanProject:
-                case bshclientProject:  target = libsSpec; break
-                default:                target = libsExt;  break
-            }
-            target.from(dep.file) { rename { dep.name + '.' + dep.extension } }
-        }
-
-        configurations.pluginClasspath.resolvedConfiguration.resolvedArtifacts.each { dep ->
-            def compId   = dep.id.componentIdentifier
-            def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
-            if (moduleId in pluginIds && (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild())) {
-                libsExt.from(dep.file)
-            } else if (!(moduleId in pluginIds)) {
-                libsSpec.from(dep.file)
-            }
-        }
-    }
-}
-
-libsSpec.from(populateLibs)
-libsExt.from(populateLibs)
-binLibs.from(populateLibs)
-
-// ── copyLibs / copyBinLibs ─────────────────────────────────────────────────────
-def copyLibs = tasks.register('copyLibs', Sync) {
-    rootSpec.into("${rootDir}/lib")
-    with libsSpec
-    preserve {
-        include '**/*.txt'
-        include 'ext/*.jar'
-        exclude 'ext/ApacheJMeter*.jar'
-    }
-    into('ext') {
-        with libsExt
-        from(files(configurations.generatorJar)) {
-            rename { 'ApacheJMeter_generator.jar' }
-        }
-    }
-}
-
-def copyBinLibs = tasks.register('copyBinLibs', Copy) {
-    rootSpec.into("${rootDir}/bin")
-    with binLibs
-}
-
-// ── createDist ──────────────────────────────────────────────────────────────────
-tasks.register('createDist') {
-    group = LifecycleBasePlugin.BUILD_GROUP
-    description = 'Собирает fork JAR и раскладывает их в lib/ и bin/'
-    dependsOn copyLibs, copyBinLibs
-}
-
-// ── runGui ────────────────────────────────────────────────────────────────────
+// ── runGui ─────────────────────────────────────────────────────────────────────
 tasks.register('runGui', JavaExec) {
-    group = 'Development'
+    group       = 'Development'
     description = 'Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI'
-    dependsOn 'pullLibsBundle', 'createDist'
-    workingDir = file("${project.rootDir}/bin")
-    main       = 'org.apache.jmeter.NewDriver'
-    classpath  "${rootDir}/bin/ApacheJMeter.jar"
+    dependsOn   'pullLibsBundle', 'createDist'
+    workingDir  = file("${project.rootDir}/bin")
+    main        = 'org.apache.jmeter.NewDriver'
+    classpath   "${rootDir}/bin/ApacheJMeter.jar"
     jvmArgs '-Xss256k', '-XX:MaxMetaspaceSize=256m'
 
     def osName = System.getProperty('os.name')
@@ -379,7 +298,23 @@ tasks.register('runGui', JavaExec) {
     }
 }
 
-// ── Clean ────────────────────────────────────────────────────────────────────────
+// ── assembleArtifact — собирает ZIP для публикации в Nexus Maven ──────────────
+//    Реализация в gradle/publish.gradle, здесь видна как lifecycle-точка входа.
+//    Зависит от: createDist (из dist.gradle) + конфигурации publishing (из publish.gradle)
+//    Для запуска вручную из IDEA: Gradle → release → assembleArtifact
+
+// ── publishAll — одна кнопка: createDist → assembleArtifact → publish ─────────
+//    Реализация в gradle/publish.gradle.
+//    Для запуска вручную из IDEA: Gradle → release → publishAll
+
+// ── release — полный цикл: сборка + публикация + дистрибутив ─────────────────
+tasks.register('release') {
+    group       = 'release'
+    description = 'Полный цикл: createDist → distZip → assembleArtifact → publish'
+    dependsOn   'distZip', 'publishAll'
+}
+
+// ── Clean ──────────────────────────────────────────────────────────────────────
 tasks.named(BasePlugin.CLEAN_TASK_NAME) {
     doLast {
         delete downloadDir
@@ -388,98 +323,5 @@ tasks.named(BasePlugin.CLEAN_TASK_NAME) {
         delete fileTree("${rootDir}/lib")     { include '*.jar' }
         delete fileTree("${rootDir}/lib/ext") { include '*.jar' }
         delete fileTree("${rootDir}/bin")     { include 'ApacheJMeter.jar' }
-    }
-}
-
-// ── Docs helpers ─────────────────────────────────────────────────────────────────
-def xdocs = "${rootDir}/xdocs"
-
-def docCssAndImages = { CopySpec spec ->
-    spec.from(xdocs) {
-        include '.htaccess'
-        include 'css/**'
-        include 'images/**'
-    }
-}
-
-def printableDocumentation = { CopySpec spec ->
-    spec.into('docs') { docCssAndImages(delegate) }
-}
-
-def excludeLicenseFromSourceRelease = { CopySpec spec ->
-    spec.exclude 'licenses/**'
-    spec.exclude 'LICENSE'
-}
-
-def distributionGroup = 'distribution'
-def baseFolder = "apache-jmeter-${rootProject.version}"
-
-def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
-    group = JavaBasePlugin.DOCUMENTATION_GROUP
-    description = 'Генерирует агрегированный Javadoc для всех fork-модулей'
-    def sourceSets = jars.collect { project(it).sourceSets.main }
-    classpath = files(sourceSets.collect { ss -> ss.collect { it.output + it.compileClasspath } })
-    source(sourceSets.collect { ss -> ss.collect { it.allJava } })
-    destinationDir = file("${buildDir}/docs/javadocAggregate")
-}
-
-def javadocsSpec = copySpec { from(javadocAggregate) }
-
-def binaryLayout = { CrLfSpec crlfSpec ->
-    crlfSpec.copySpec {
-        into(baseFolder) {
-            from files(configurations.binLicense)
-            from(rootDir) {
-                exclude 'bin/testfiles'
-                exclude 'bin/rmi_keystore.jks'
-                include 'bin/**'
-                include 'lib/ext/**'
-                include 'lib/junit/**'
-                include 'extras/**'
-                include 'README.md'
-                excludeLicenseFromSourceRelease(delegate)
-            }
-            into('bin') { with binLibs }
-            into('lib') {
-                with libsSpec
-                into('ext') { with libsExt }
-            }
-            printableDocumentation(delegate)
-            into('docs/api') { with javadocsSpec }
-        }
-    }
-}
-
-// ── skipDist ──────────────────────────────────────────────────────────────────────
-// rootProject.extra['skipDist'] бросал MissingPropertyException если lazy-свойство
-// в Kotlin-скрипте ещё не было вычислено. Используем безопасный доступ
-// через ExtraPropertiesExtension.has() + фоллбэк на findProperty.
-def skipDist = {
-    def ext = rootProject.extensions.extraProperties
-    if (ext.has('skipDist')) {
-        return ext.get('skipDist') as boolean
-    }
-    // Фоллбэк: читаем проектное свойство напрямую
-    def prop = rootProject.findProperty('skipDist')
-    if (prop == null) return false
-    return !(prop as String).equalsIgnoreCase('false')
-}()
-
-if (!skipDist) {
-    ['binary', 'source'].each { type ->
-        [Zip, Tar].each { archiveClass ->
-            def taskName = "dist${archiveClass.simpleName}${type == 'binary' ? '' : type.capitalize()}"
-            tasks.register(taskName, archiveClass) {
-                dependsOn createDist
-                def eol = (archiveClass == Tar) ? LineEndings.LF : LineEndings.CRLF
-                group = distributionGroup
-                description = "Создаёт $type дистрибутив"
-                if (it instanceof Tar) compression = Compression.GZIP
-                archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
-                archiveVersion  = ''
-                def spec = new CrLfSpec(eol)
-                with binaryLayout(spec)
-            }
-        }
     }
 }
