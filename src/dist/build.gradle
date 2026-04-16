@@ -39,10 +39,7 @@ plugins {
 // Здесь classpath плагина com.github.vlsi.crlf доступен — импорт работает напрямую.
 // apply from: скрипты наследуют эти значения через project.ext.
 ext.CrLfSpecClass    = com.github.vlsi.gradle.crlf.CrLfSpec
-ext.LineEndingsClass  = com.github.vlsi.gradle.crlf.LineEndings
-
-apply from: 'gradle/nexus.gradle'
-apply from: 'gradle/dist.gradle'
+ext.LineEndingsClass = com.github.vlsi.gradle.crlf.LineEndings
 
 // ── Version catalog helpers ──────────────────────────────────────────────────────────────
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
@@ -67,6 +64,41 @@ def gav = { String alias ->
 // ── Versions ────────────────────────────────────────────────────────────────────────────
 def jmeterVersion = ver('jmeter')
 
+// ── Fork submodules (built from source) ────────────────────────────────────────────────────
+def jars = [
+    ':src:bshclient',
+    ':src:core',
+    ':src:functions',
+    ':src:protocol:native',
+    ':src:launcher'
+]
+
+// ── Plugin JARs ────────────────────────────────────────────────────────────────────────────
+def pluginAliases = [
+    'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
+    'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
+    'plugin-redis', 'plugin-synthesis', 'plugin-xml', 'plugin-graphs-ggl',
+    'plugin-bzm-csv', 'plugin-bzm-wsc', 'plugin-ffw', 'plugin-fifo',
+    'plugin-graphs-basic', 'plugin-graphs-additional', 'plugin-websocket',
+    'plugin-prometheus', 'plugin-bzm-http2', 'plugin-iso8583',
+    'plugin-pack-listener', 'plugin-common-io', 'plugin-dir-listing',
+    'plugin-autostop', 'plugin-plancheck', 'plugin-prmctl', 'plugin-httpraw',
+    'plugin-dbmon', 'plugin-graphs-dist', 'plugin-cmd', 'plugin-bzm-parallel',
+    'plugin-udp', 'plugin-wssecurity'
+]
+
+// ── Экспортируем в ext ДО apply from: — dist.gradle читает project.ext ──────────────────
+// ВАЖНО: apply from: выполняется немедленно при вызове, поэтому все ext.*
+// должны быть выставлены РАНЬШЕ строчек apply from: ниже.
+ext.pluginAliases = pluginAliases
+ext.jars          = jars
+ext.lib           = lib   // Closure: alias -> MinimalExternalModuleDependency
+ext.gav           = gav   // Closure: alias -> "group:name:version"
+ext.ver           = ver   // Closure: alias -> version string
+
+apply from: 'gradle/nexus.gradle'
+apply from: 'gradle/dist.gradle'
+
 // ── resolutionStrategy ────────────────────────────────────────────────────────────────
 configurations.all {
     resolutionStrategy.eachDependency { details ->
@@ -86,7 +118,7 @@ configurations.all {
             else if (g == 'commons-lang')                                           resolved = ver('commons-lang')
             else if (g == 'org.apache.commons' && n == 'commons-lang3')             resolved = ver('commons-lang3')
             else if (g == 'org.apache.commons' && n == 'commons-math3')             resolved = ver('commons-math3')
-            else if (g == 'org.apache.commons' && n == 'commons-text')              resolved = ver('commons-text')
+            else if (g == 'org.apache.commons' && n == 'commons-text')             resolved = ver('commons-text')
             else if (g == 'org.apache.commons' && n == 'commons-jexl')             resolved = ver('commons-jexl')
             else if (g == 'org.apache.commons' && n == 'commons-jexl3')             resolved = ver('commons-jexl3')
             else if (g == 'org.apache.commons' && n == 'commons-dbcp2')             resolved = ver('commons-dbcp2')
@@ -166,15 +198,6 @@ configurations.runtimeClasspath {
     exclude group: 'javax.jms',         module: 'jms'
 }
 
-// ── Fork submodules (built from source) ────────────────────────────────────────────────────
-def jars = [
-    ':src:bshclient',
-    ':src:core',
-    ':src:functions',
-    ':src:protocol:native',
-    ':src:launcher'
-]
-
 // ── Upstream JMeter JARs ──────────────────────────────────────────────────────────────────
 def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_components:${jmeterVersion}",
@@ -197,20 +220,6 @@ def extraLibs = [
     'jna', 'jxlayer', 'ojdbc6', 'pdfbox', 'mssql-jdbc',
     'rabbitmq-amqp-client', 'javatuples', 'jsch',
     'hdrhistogram', 'osgi-core', 'ibm-mq', 'darcula-bulenkov'
-]
-
-// ── Plugin JARs ────────────────────────────────────────────────────────────────────────────
-def pluginAliases = [
-    'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
-    'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
-    'plugin-redis', 'plugin-synthesis', 'plugin-xml', 'plugin-graphs-ggl',
-    'plugin-bzm-csv', 'plugin-bzm-wsc', 'plugin-ffw', 'plugin-fifo',
-    'plugin-graphs-basic', 'plugin-graphs-additional', 'plugin-websocket',
-    'plugin-prometheus', 'plugin-bzm-http2', 'plugin-iso8583',
-    'plugin-pack-listener', 'plugin-common-io', 'plugin-dir-listing',
-    'plugin-autostop', 'plugin-plancheck', 'plugin-prmctl', 'plugin-httpraw',
-    'plugin-dbmon', 'plugin-graphs-dist', 'plugin-cmd', 'plugin-bzm-parallel',
-    'plugin-udp', 'plugin-wssecurity'
 ]
 
 // ── Extra configurations ────────────────────────────────────────────────────────────────
