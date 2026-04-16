@@ -2,8 +2,8 @@
  * Вся работа с Nexus:
  *
  *   [RAW bundle]
- *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/ + extras/ + config/
- *   pushLibsBundle  — упаковать lib/ + bin/ + extras/ + config/ и загрузить в Nexus RAW
+ *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/ + extras/
+ *   pushLibsBundle  — упаковать lib/ + bin/ + extras/ и загрузить в Nexus RAW
  *
  *   [Maven publish]
  *   publishAll      — одна кнопка: createDist → assembleArtifact → publish
@@ -43,11 +43,6 @@ def bundleFile = file("${downloadDir}/${BUNDLE_NAME}")
 //  RAW BUNDLE — pull
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * [internal] Скачивает bundle jmeter-libs.zip из Nexus RAW через HttpURLConnection.
- * Используем plain HTTP вместо de.undercouch.download, потому что классы плагина
- * недоступны в apply-from скриптах в Gradle 7.x.
- */
 tasks.register('downloadLibsBundle') {
     description = '[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW'
     outputs.file bundleFile
@@ -91,31 +86,25 @@ tasks.register('unpackLibsBundle', Copy) {
     includeEmptyDirs   = false
 }
 
-// Sync (а не Copy) — полная синхронизация папок назначения:
-// удаляет файлы которых нет в источнике + перезаписывает существующие. Это точный эквивалент
-// понятия "overwrite + cleanup".
 tasks.register('copyBundleToRoot', Sync) {
-    description = '[internal] Синхронизирует lib/, bin/, extras/, config/ из unpacked в корень проекта'
+    description = '[internal] Синхронизирует lib/, bin/, extras/ из unpacked в корень проекта'
     dependsOn 'unpackLibsBundle'
     from(unpackedDir) {
         include 'bin/**'
         include 'lib/**'
         include 'extras/**'
-        include 'config/**'
     }
     into rootDir
-    // Сохраняем всё что не относится к управляемым папкам — не трогаем файлы проекта в корне
     preserve {
         exclude 'bin/**'
         exclude 'lib/**'
         exclude 'extras/**'
-        exclude 'config/**'
     }
 }
 
 tasks.register('pullLibsBundle') {
     group       = 'bundle'
-    description = 'Скачивает bundle из Nexus RAW и раскладывает lib/, bin/, extras/, config/ по местам'
+    description = 'Скачивает bundle из Nexus RAW и раскладывает lib/, bin/, extras/ по местам'
     dependsOn 'downloadLibsBundle', 'unpackLibsBundle', 'copyBundleToRoot'
     doLast { logger.lifecycle('pullLibsBundle завершён') }
 }
@@ -125,21 +114,20 @@ tasks.register('pullLibsBundle') {
 // ─────────────────────────────────────────────────────────────────────────────
 
 tasks.register('packLibsBundle', Zip) {
-    description          = '[internal] Упаковывает текущие lib/, bin/, extras/, config/ в ZIP'
+    description          = '[internal] Упаковывает текущие lib/, bin/, extras/ в ZIP'
     archiveFileName      = BUNDLE_NAME
     destinationDirectory = layout.buildDirectory.dir('bundle-stage')
     from(rootDir) {
         include 'bin/**'
         include 'lib/**'
         include 'extras/**'
-        include 'config/**'
     }
     doFirst { bundleStageDir.mkdirs() }
 }
 
 tasks.register('pushLibsBundle') {
     group       = 'bundle'
-    description = 'Упаковывает lib/, bin/, extras/, config/ и загружает bundle в Nexus RAW (перезаписывает)'
+    description = 'Упаковывает lib/, bin/, extras/ и загружает bundle в Nexus RAW (перезаписывает)'
     dependsOn   'packLibsBundle'
     doLast {
         def file = layout.buildDirectory.dir('bundle-stage').get().file(BUNDLE_NAME).asFile
@@ -183,9 +171,6 @@ def urlSite         = artifactVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : 
 
 group = 'ru.nt_master'
 
-// afterEvaluate — обязательно:
-// nexus.gradle применяется ДО dist.gradle, тоесть таска assembleArtifact ещё не зарегистрирована
-// на момент выполнения этого файла. afterEvaluate гарантирует что все apply from: уже отработали.
 afterEvaluate {
     publishing {
         publications {
@@ -208,7 +193,6 @@ afterEvaluate {
     }
 }
 
-// publishAll — одна кнопка: createDist → assembleArtifact → publish в Nexus Maven
 tasks.register('publishAll') {
     group       = 'release'
     description = 'createDist → assembleArtifact → publish в Nexus Maven'

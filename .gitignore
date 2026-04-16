@@ -8,7 +8,6 @@ target/
 /bin/
 /lib/
 /extras/
-/config/
 
 gradle.properties
 
