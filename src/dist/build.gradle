@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────────
 //  src/dist/build.gradle  (Groovy DSL)
 //
 //  Этот файл — "оглавление" проекта:
@@ -25,8 +25,8 @@
 //
 //  Структура gradle/:
 //    gradle/nexus.gradle  — Nexus RAW bundle (pull/push) + Maven publish
-//    gradle/dist.gradle   — populateLibs → createDist → assembleArtifact → distZip/Tar
-// ─────────────────────────────────────────────────────────────────────────────
+//    gradle/dist.gradle   — populateLibs → createDist → assembleArtifact
+// ────────────────────────────────────────────────────────────────────────────────
 
 plugins {
     id 'java'
@@ -38,7 +38,7 @@ plugins {
 apply from: 'gradle/nexus.gradle'
 apply from: 'gradle/dist.gradle'
 
-// ── Version catalog helpers ───────────────────────────────────────────────────
+// ── Version catalog helpers ──────────────────────────────────────────────────────────────
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
 def lib = { String alias ->
@@ -58,10 +58,10 @@ def gav = { String alias ->
     "${d.module.group}:${d.module.name}:${d.versionConstraint.requiredVersion}"
 }
 
-// ── Versions ──────────────────────────────────────────────────────────────────
+// ── Versions ────────────────────────────────────────────────────────────────────────────
 def jmeterVersion = ver('jmeter')
 
-// ── resolutionStrategy ────────────────────────────────────────────────────────
+// ── resolutionStrategy ────────────────────────────────────────────────────────────────
 configurations.all {
     resolutionStrategy.eachDependency { details ->
         def g = details.requested.group
@@ -81,7 +81,7 @@ configurations.all {
             else if (g == 'org.apache.commons' && n == 'commons-lang3')             resolved = ver('commons-lang3')
             else if (g == 'org.apache.commons' && n == 'commons-math3')             resolved = ver('commons-math3')
             else if (g == 'org.apache.commons' && n == 'commons-text')              resolved = ver('commons-text')
-            else if (g == 'org.apache.commons' && n == 'commons-jexl')              resolved = ver('commons-jexl')
+            else if (g == 'org.apache.commons' && n == 'commons-jexl')             resolved = ver('commons-jexl')
             else if (g == 'org.apache.commons' && n == 'commons-jexl3')             resolved = ver('commons-jexl3')
             else if (g == 'org.apache.commons' && n == 'commons-dbcp2')             resolved = ver('commons-dbcp2')
             else if (g == 'org.apache.commons' && n == 'commons-pool2')             resolved = ver('commons-pool2')
@@ -153,14 +153,14 @@ configurations.all {
     }
 }
 
-// ── Configurations (excludes) ─────────────────────────────────────────────────
+// ── Configurations (excludes) ──────────────────────────────────────────────────────────────
 configurations.runtimeClasspath {
     exclude group: 'org.apache.jmeter', module: 'bom'
     exclude group: '',                  module: 'commons-pool2'
     exclude group: 'javax.jms',         module: 'jms'
 }
 
-// ── Fork submodules (built from source) ───────────────────────────────────────
+// ── Fork submodules (built from source) ────────────────────────────────────────────────────
 def jars = [
     ':src:bshclient',
     ':src:core',
@@ -169,7 +169,7 @@ def jars = [
     ':src:launcher'
 ]
 
-// ── Upstream JMeter JARs ──────────────────────────────────────────────────────
+// ── Upstream JMeter JARs ──────────────────────────────────────────────────────────────────
 def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_components:${jmeterVersion}",
     "org.apache.jmeter:jorphan:${jmeterVersion}",
@@ -186,14 +186,14 @@ def jarsDeps = [
     "org.apache.jmeter:ApacheJMeter_tcp:${jmeterVersion}"
 ]
 
-// ── Extra dist JARs ───────────────────────────────────────────────────────────
+// ── Extra dist JARs ──────────────────────────────────────────────────────────────────────
 def extraLibs = [
     'jna', 'jxlayer', 'ojdbc6', 'pdfbox', 'mssql-jdbc',
     'rabbitmq-amqp-client', 'javatuples', 'jsch',
     'hdrhistogram', 'osgi-core', 'ibm-mq', 'darcula-bulenkov'
 ]
 
-// ── Plugin JARs ───────────────────────────────────────────────────────────────
+// ── Plugin JARs ────────────────────────────────────────────────────────────────────────────
 def pluginAliases = [
     'plugin-cmn', 'plugin-manager', 'plugin-casutg', 'plugin-perfmon',
     'plugin-tst', 'plugin-cmdrunner', 'plugin-dummy', 'plugin-functions',
@@ -207,7 +207,7 @@ def pluginAliases = [
     'plugin-udp', 'plugin-wssecurity'
 ]
 
-// ── Extra configurations ──────────────────────────────────────────────────────
+// ── Extra configurations ────────────────────────────────────────────────────────────────
 configurations {
     buildDocs     { canBeConsumed = false }
     generatorJar  { canBeConsumed = false }
@@ -225,7 +225,7 @@ configurations {
     }
 }
 
-// ── Dependencies ──────────────────────────────────────────────────────────────
+// ── Dependencies ──────────────────────────────────────────────────────────────────────────
 dependencies {
     implementation platform(project(':src:bom'))
 
@@ -256,11 +256,11 @@ dependencies {
     generatorJar project(path: ':src:generator', configuration: 'archives')
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────────
 //  LIFECYCLE TASKS
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────────
 
-// ── runGui — для разработчика ─────────────────────────────────────────────────
+// ── runGui — для разработчика ────────────────────────────────────────────────────────
 tasks.register('runGui', JavaExec) {
     group       = 'Development'
     description = 'Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI'
@@ -295,16 +295,15 @@ tasks.register('runGui', JavaExec) {
     }
 }
 
-// ── release — для CI/CD ───────────────────────────────────────────────────────
-//    distZip  (из dist.gradle)    — архив для пользователей
-//    publishAll (из nexus.gradle) — публикация в Nexus Maven
+// ── release — для CI/CD ───────────────────────────────────────────────────────────────────
+//    publishAll (nexus.gradle) — createDist → assembleArtifact → publish в Nexus Maven
 tasks.register('release') {
     group       = 'release'
-    description = 'Полный цикл: createDist → distZip + assembleArtifact → publishAll'
-    dependsOn   'distZip', 'publishAll'
+    description = 'Полный цикл: createDist → assembleArtifact → publish в Nexus Maven'
+    dependsOn   'publishAll'
 }
 
-// ── Clean ─────────────────────────────────────────────────────────────────────
+// ── Clean ────────────────────────────────────────────────────────────────────────────────
 tasks.named(BasePlugin.CLEAN_TASK_NAME) {
     doLast {
         delete downloadDir
