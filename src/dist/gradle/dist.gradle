@@ -9,66 +9,86 @@
  *   assembleArtifact  — финальная сборка продукта: ZIP для публикации в Nexus Maven
  *   distZip / distTar — архивы дистрибутива для пользователей
  *
- * Зависит от переменных, объявленных в build.gradle:
- *   pluginAliases, jars, lib(), ver(), gav()
- *   CrLfSpecClass, LineEndingsClass  — задаются через ext в build.gradle ДО apply from
+ * Зависит от переменных, объявленных в build.gradle через ext:
+ *   pluginAliases, jars    — списки
+ *   lib(alias)             — замыкание из version catalog
+ *   CrLfSpecClass, LineEndingsClass
  * Зависит от конфигураций:
  *   runtimeClasspath, pluginClasspath, generatorJar, binLicense
  */
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
-// ── CrLfSpec / LineEndings — принимаем из ext (задаются в build.gradle до apply from) ─────────
-def CrLfSpecClass    = project.ext.CrLfSpecClass
-def LineEndingsClass  = project.ext.LineEndingsClass
+// ── Читаем ext-значения на уровне скрипта (до tasks.register) ──────────────────────
+// Зачем: doLast{} выполняется в контексте таска, а не проекта.
+// project.ext там недоступен напрямую — нужно захватить в local val здесь.
+def _pluginAliases      = project.ext.pluginAliases   as List<String>
+def _jars               = project.ext.jars            as List<String>
+def _lib                = project.ext.lib             // Closure: alias -> MinimalExternalModuleDependency
+def _LineEndingsClass   = project.ext.LineEndingsClass
+def _CrLfSpecClass      = project.ext.CrLfSpecClass
+
+// module-id множество всех плагинов (предвычисляем здесь, пока catalog доступен)
+def _pluginModuleIds = _pluginAliases.collect { alias ->
+    def d = _lib(alias)
+    "${d.module.group}:${d.module.name}"
+}.toSet()
+
+// пути субпроектов (project path) — тоже захватываем заранее
+def _launcherPath   = project(':src:launcher').path
+def _bshclientPath  = project(':src:bshclient').path
+def _jorphanPath    = ':src:jorphan'
 
 // ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
 ext.libsSpec = copySpec()
 ext.libsExt  = copySpec()
 ext.binLibs  = copySpec()
 
+// ── populateLibs ─────────────────────────────────────────────────────────────────────
 def populateLibs = tasks.register('populateLibs') {
     dependsOn configurations.runtimeClasspath
+    // захватываем заранее вычисленные значения
+    def pluginModuleIds    = _pluginModuleIds
+    def launcherProject    = _launcherPath
+    def bshclientProject   = _bshclientPath
+    def jorphanProject     = _jorphanPath
+    def libsSpecRef        = libsSpec
+    def libsExtRef         = libsExt
+    def binLibsRef         = binLibs
+    def runtimeCfg         = configurations.runtimeClasspath
+    def pluginCfg          = configurations.pluginClasspath
+
     doLast {
-        def launcherProject  = project(':src:launcher').path
-        def bshclientProject = project(':src:bshclient').path
-        def jorphanProject   = ':src:jorphan'
-
-        def pluginModuleIds = pluginAliases.collect { alias ->
-            def d = lib(alias)
-            "${d.module.group}:${d.module.name}"
-        }.toSet()
-
-        def pluginIds = configurations.pluginClasspath
+        def pluginIds = pluginCfg
             .resolvedConfiguration.resolvedArtifacts
             .collect { "${it.moduleVersion.id.group}:${it.moduleVersion.id.name}" }
             .toSet()
 
-        configurations.runtimeClasspath.get().resolvedConfiguration.resolvedArtifacts.each { dep ->
+        runtimeCfg.get().resolvedConfiguration.resolvedArtifacts.each { dep ->
             def compId = dep.id.componentIdentifier
             if (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild()) {
                 def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
-                if (moduleId in pluginIds) libsExt.from(dep.file)
-                else                       libsSpec.from(dep.file)
+                if (moduleId in pluginIds) libsExtRef.from(dep.file)
+                else                       libsSpecRef.from(dep.file)
                 return
             }
             def target
             switch (compId.projectPath) {
-                case launcherProject:   target = binLibs;  break
+                case launcherProject:   target = binLibsRef;  break
                 case jorphanProject:
-                case bshclientProject:  target = libsSpec; break
-                default:                target = libsExt;  break
+                case bshclientProject:  target = libsSpecRef; break
+                default:                target = libsExtRef;  break
             }
             target.from(dep.file) { rename { dep.name + '.' + dep.extension } }
         }
 
-        configurations.pluginClasspath.resolvedConfiguration.resolvedArtifacts.each { dep ->
+        pluginCfg.resolvedConfiguration.resolvedArtifacts.each { dep ->
             def compId   = dep.id.componentIdentifier
             def moduleId = "${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}"
             if (moduleId in pluginIds && (!(compId instanceof ProjectComponentIdentifier) || !compId.build.isCurrentBuild())) {
-                libsExt.from(dep.file)
+                libsExtRef.from(dep.file)
             } else if (!(moduleId in pluginIds)) {
-                libsSpec.from(dep.file)
+                libsSpecRef.from(dep.file)
             }
         }
     }
@@ -78,7 +98,7 @@ libsSpec.from(populateLibs)
 libsExt.from(populateLibs)
 binLibs.from(populateLibs)
 
-// ── copyLibs / copyBinLibs ─────────────────────────────────────────────────────
+// ── copyLibs / copyBinLibs ────────────────────────────────────────────────────
 def copyLibs = tasks.register('copyLibs', Sync) {
     rootSpec.into("${rootDir}/lib")
     with libsSpec
@@ -107,7 +127,7 @@ tasks.register('createDist') {
     dependsOn copyLibs, copyBinLibs
 }
 
-// ── assembleArtifact — финальная сборка продукта ──────────────────────────────
+// ── assembleArtifact — финальная сборка продукта ─────────────────────────────
 def artifactId      = project.findProperty('artifactId')      ?: 'nt_master'
 def artifactVersion = (project.findProperty('version') ?: project.findProperty('appversion') ?: '1.0.0') as String
 
@@ -127,7 +147,7 @@ tasks.register('assembleArtifact', Zip) {
     }
 }
 
-// ── Docs helpers ──────────────────────────────────────────────────────────────
+// ── Docs helpers ─────────────────────────────────────────────────────────────
 def xdocs = "${rootDir}/xdocs"
 
 def docCssAndImages = { spec ->
@@ -152,18 +172,15 @@ def baseFolder = "apache-jmeter-${rootProject.version}"
 def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
     group       = JavaBasePlugin.DOCUMENTATION_GROUP
     description = 'Генерирует агрегированный Javadoc для всех fork-модулей'
-    def sourceSets = jars.collect { project(it).sourceSets.main }
-    classpath      = files(sourceSets.collect { ss -> ss.collect { it.output + it.compileClasspath } })
-    source(sourceSets.collect { ss -> ss.collect { it.allJava } })
+    def sourceSetsSnap = _jars.collect { project(it).sourceSets.main }
+    classpath      = files(sourceSetsSnap.collect { ss -> ss.collect { it.output + it.compileClasspath } })
+    source(sourceSetsSnap.collect { ss -> ss.collect { it.allJava } })
     destinationDir = file("${buildDir}/docs/javadocAggregate")
 }
 
 def javadocsSpec = copySpec { from(javadocAggregate) }
 
-// binaryLayout — использует CrLfSpec через project.ext (Groovy видит Kotlin-класс как POJO)
-// CrLfSpec.textFrom / textAuto / gitattributes — Kotlin extension functions,
-// недоступны из Groovy. Поэтому binaryLayout не использует никаких CrLfSpec-методов —
-// только значение LineEndings.LF/CRLF для передачи в CrLfSpec конструктор.
+// binaryLayout — plain Gradle CopySpec, никаких CrLfSpec extension-методов не вызывается
 def binaryLayout = { eol ->
     def spec = project.copySpec()
     spec.into(baseFolder) {
@@ -189,7 +206,7 @@ def binaryLayout = { eol ->
     spec
 }
 
-// ── skipDist guard ────────────────────────────────────────────────────────────
+// ── skipDist guard ───────────────────────────────────────────────────────────
 def skipDist = {
     def extProps = rootProject.extensions.extraProperties
     if (extProps.has('skipDist')) return extProps.get('skipDist') as boolean
@@ -198,13 +215,10 @@ def skipDist = {
     return !(prop as String).equalsIgnoreCase('false')
 }()
 
-// ── distZip / distTar — архивы дистрибутива для пользователей ────────────────
-// LineEndings.LF/CRLF — Java enum, доступен из Groovy через getField.
-// CrLfSpec используется только как параметр конструктора (textEol) — никаких его
-// extension-методов не вызывается. binaryLayout строит обычный Gradle CopySpec.
+// ── distZip / distTar ────────────────────────────────────────────────────────────────
 if (!skipDist) {
-    def LF   = LineEndingsClass.getField('LF').get(null)
-    def CRLF = LineEndingsClass.getField('CRLF').get(null)
+    def LF   = _LineEndingsClass.getField('LF').get(null)
+    def CRLF = _LineEndingsClass.getField('CRLF').get(null)
 
     ['binary', 'source'].each { type ->
         [Zip, Tar].each { archiveClass ->
