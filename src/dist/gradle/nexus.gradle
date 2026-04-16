@@ -176,21 +176,26 @@ def urlSite         = artifactVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : 
 
 group = 'ru.nt_master'
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId    = 'ru.nt_master'
-            artifactId = artifactId
-            version    = artifactVersion
-            artifact tasks.named('assembleArtifact')
+// afterEvaluate — обязательно:
+// nexus.gradle применяется ДО dist.gradle, тоесть таска assembleArtifact ещё не зарегистрирована
+// на момент выполнения этого файла. afterEvaluate гарантирует что все apply from: уже отработали.
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId    = 'ru.nt_master'
+                artifactId = artifactId
+                version    = artifactVersion
+                artifact tasks.named('assembleArtifact')
+            }
         }
-    }
-    repositories {
-        maven {
-            url = uri(urlSite)
-            credentials {
-                username = MVN_USER
-                password = MVN_PASS
+        repositories {
+            maven {
+                url = uri(urlSite)
+                credentials {
+                    username = MVN_USER
+                    password = MVN_PASS
+                }
             }
         }
     }
