@@ -35,26 +35,6 @@
 4. В диалоге `File already exists` выберите `Yes` (перезаписать)
 5. В диалоге `Open Project` выберите `Delete Existing Project and Import`
 
-### Eclipse
-
-Eclipse поддерживает импорт Gradle-проектов через `Import... → Gradle project`.
-
-Опционально можно сгенерировать Eclipse-проект:
-
-```sh
-./gradlew eclipse
-```
-
-Пошаговая инструкция для Eclipse 2019-06:
-
-1. Установите `Eclipse IDE for Java Developers`
-2. Установите плагин Groovy Eclipse с компилятором Groovy 2.4 (часть тестов написана на Groovy)
-3. Установите плагин `Kotlin for Eclipse` (скрипты сборки написаны на Kotlin)
-4. Убедитесь, что в workspace настроен JDK, совместимый с Java 8
-5. `File → Import... → Existing Gradle Project → Next`
-6. Прочитайте раздел `How to experience the best Gradle integration` и нажмите `Next`
-7. Нажмите `Finish`
-
 ## ⭐ Есть патч?
 
 Лучший способ решить проблему — отправить патч. Принимаем:
