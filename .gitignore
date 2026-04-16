@@ -4,9 +4,11 @@ build/
 out/
 target/
 
-# ── JMeter runtime dirs (генерируются при сборке) ─────────────────────────────
+# ── JMeter runtime dirs (генерируются при сборке / тянутся из Nexus RAW bundle) ──
 /bin/
 /lib/
+/extras/
+/config/
 
 gradle.properties
 

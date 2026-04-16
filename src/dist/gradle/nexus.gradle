@@ -2,8 +2,8 @@
  * Вся работа с Nexus:
  *
  *   [RAW bundle]
- *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/
- *   pushLibsBundle  — упаковать lib/ + bin/ и загрузить в Nexus RAW
+ *   pullLibsBundle  — скачать jmeter-libs.zip и разложить lib/ + bin/ + extras/ + config/
+ *   pushLibsBundle  — упаковать lib/ + bin/ + extras/ + config/ и загрузить в Nexus RAW
  *
  *   [Maven publish]
  *   publishAll      — одна кнопка: createDist → assembleArtifact → publish
@@ -95,23 +95,27 @@ tasks.register('unpackLibsBundle', Copy) {
 // удаляет файлы которых нет в источнике + перезаписывает существующие. Это точный эквивалент
 // понятия "overwrite + cleanup".
 tasks.register('copyBundleToRoot', Sync) {
-    description = '[internal] Синхронизирует lib/ и bin/ из unpacked в корень проекта'
+    description = '[internal] Синхронизирует lib/, bin/, extras/, config/ из unpacked в корень проекта'
     dependsOn 'unpackLibsBundle'
     from(unpackedDir) {
         include 'bin/**'
         include 'lib/**'
+        include 'extras/**'
+        include 'config/**'
     }
     into rootDir
-    // Сохраняем всё что не относится к bin/ и lib/ — не трогаем файлы проекта в корне
+    // Сохраняем всё что не относится к управляемым папкам — не трогаем файлы проекта в корне
     preserve {
         exclude 'bin/**'
         exclude 'lib/**'
+        exclude 'extras/**'
+        exclude 'config/**'
     }
 }
 
 tasks.register('pullLibsBundle') {
     group       = 'bundle'
-    description = 'Скачивает bundle из Nexus RAW и раскладывает lib/ + bin/ по местам'
+    description = 'Скачивает bundle из Nexus RAW и раскладывает lib/, bin/, extras/, config/ по местам'
     dependsOn 'downloadLibsBundle', 'unpackLibsBundle', 'copyBundleToRoot'
     doLast { logger.lifecycle('pullLibsBundle завершён') }
 }
@@ -121,19 +125,21 @@ tasks.register('pullLibsBundle') {
 // ─────────────────────────────────────────────────────────────────────────────
 
 tasks.register('packLibsBundle', Zip) {
-    description          = '[internal] Упаковывает текущие lib/ + bin/ в ZIP'
+    description          = '[internal] Упаковывает текущие lib/, bin/, extras/, config/ в ZIP'
     archiveFileName      = BUNDLE_NAME
     destinationDirectory = layout.buildDirectory.dir('bundle-stage')
     from(rootDir) {
         include 'bin/**'
         include 'lib/**'
+        include 'extras/**'
+        include 'config/**'
     }
     doFirst { bundleStageDir.mkdirs() }
 }
 
 tasks.register('pushLibsBundle') {
     group       = 'bundle'
-    description = 'Упаковывает lib/ + bin/ и загружает bundle в Nexus RAW (перезаписывает)'
+    description = 'Упаковывает lib/, bin/, extras/, config/ и загружает bundle в Nexus RAW (перезаписывает)'
     dependsOn   'packLibsBundle'
     doLast {
         def file = layout.buildDirectory.dir('bundle-stage').get().file(BUNDLE_NAME).asFile
