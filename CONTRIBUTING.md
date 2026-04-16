@@ -1,99 +1,79 @@
-# How to contribute
+# Как внести вклад в НТ Мастер
 
-Want to show НТ Мастер some love? Help out by contributing!
+Проект развивается внутри Банк ПСБ. Если вы хотите улучшить инструмент — добро пожаловать!
 
-## :beetle: Found a bug
+## 🐞 Нашли баг?
 
-Log it in our bugzilla:
+Создайте задачу во внутреннем трекере или обратитесь к команде нагрузочного тестирования.
 
-* *<https://www.psbank.ru/bank/af000010>*
-* or send a note to the *user mailing list*.
-Be sure to include all relevant information, like the versions of JMeter you’re using as long as Java version.
-A Test plan  that caused the issue as well as any error messages are also very helpful.
+Обязательно укажите:
+- версию НТ Мастер и версию Java
+- тест-план (`.jmx`), воспроизводящий проблему
+- сообщения об ошибках из логов
 
-## :question: Need help
+## ❓ Нужна помощь?
 
-Simply contact:
+Обратитесь к команде НТ через внутренний чат или почту.
 
-* [Our users mailing list](https://www.psbank.ru/bank/af000010)
-* or ask question on [stackoverflow](https://stackoverflow.com/questions/tagged/jmeter).
+## 📊 Что сейчас в работе?
 
-## :bar_chart: What needs to be developed
+Смотрите внутренний бэклог проекта НТ Мастер в Jira.
 
-See:
-
-* [Open bug entries for JMeter](https://bz.apache.org/bugzilla/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&bug_status=NEEDINFO&bug_severity=Blocker&bug_severity=Critical&bug_severity=Major&bug_severity=Normal&bug_severity=Regression&bug_severity=Minor&bug_severity=Trivial&product=JMeter&order=Bug%20Number&list_id=164231)
-* [Enhancement requests for JMeter](https://bz.apache.org/bugzilla/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&bug_status=NEEDINFO&bug_severity=Enhancement&product=JMeter&order=Bug%20Number&list_id=164232)
-
-## Development setup
+## Настройка окружения разработчика
 
 ### Gradle
 
-You might find useful Gradle commands in [gradle.md](gradle.md)
+Полезные Gradle-команды описаны в [gradle.md](gradle.md).
 
-### <a name="intellij"></a>IntelliJ IDEA
+### IntelliJ IDEA
 
-You require IntelliJ 2018.3.1 or newer.
+Требуется IntelliJ IDEA 2018.3.1 или новее.
 
-1. Open the build.gradle.kts file with IntelliJ IDEA and choose `Open as Project`
-1. Make sure `Create separate module per source set` is selected
-1. Make sure `Use default gradle wrapper` is selected
-1. In the `File already exists` dialogue, choose `Yes` to overwrite
-1. In the `Open Project` dialogue, choose `Delete Existing Project and Import`
+1. Откройте файл `build.gradle.kts` через IntelliJ IDEA и выберите `Open as Project`
+2. Убедитесь, что выбрано `Create separate module per source set`
+3. Убедитесь, что выбрано `Use default gradle wrapper`
+4. В диалоге `File already exists` выберите `Yes` (перезаписать)
+5. В диалоге `Open Project` выберите `Delete Existing Project and Import`
 
 ### Eclipse
 
-Eclipse can import Gradle projects automatically via `Import...->Gradle project` wizard.
+Eclipse поддерживает импорт Gradle-проектов через `Import... → Gradle project`.
 
-Optionally you can generate Eclipse project by running
+Опционально можно сгенерировать Eclipse-проект:
 
-    ./gradlew eclipse
+```sh
+./gradlew eclipse
+```
 
-The steps to import the sources (based on Eclipse 2019-06) into Eclipse are as follows:
+Пошаговая инструкция для Eclipse 2019-06:
 
-1. Install `Eclipse IDE for Java Developers`
-1. Install the Groovy Eclipse plugin and select Groovy Compiler 2.4 (some tests are written in Groovy)
-1. Install `Kotlin for Eclipse` plugin (builds scripts are written in Kotlin)
-1. Make sure you have a Java 8 compatible JDK configured in your workspace
-1. Open `File->Import...`
-1. Select `Existing Gradle Project` and click `Next`
-1. Read `How to experience the best Gradle integration` and click `Next`
-1. Then you might just click `Finish`
+1. Установите `Eclipse IDE for Java Developers`
+2. Установите плагин Groovy Eclipse с компилятором Groovy 2.4 (часть тестов написана на Groovy)
+3. Установите плагин `Kotlin for Eclipse` (скрипты сборки написаны на Kotlin)
+4. Убедитесь, что в workspace настроен JDK, совместимый с Java 8
+5. `File → Import... → Existing Gradle Project → Next`
+6. Прочитайте раздел `How to experience the best Gradle integration` и нажмите `Next`
+7. Нажмите `Finish`
 
-## :star2: Have a patch
+## ⭐ Есть патч?
 
-The best way to make sure your issue or feature is addressed is to submit a patch.
-We accept patches through:
+Лучший способ решить проблему — отправить патч. Принимаем:
 
-* pull requests
-* patch attached to bugzilla.
+- Pull Request в этот репозиторий
+- Патч, прикреплённый к задаче в трекере
 
-However, before sending a patch, please make sure that the following applies:
+Перед отправкой убедитесь:
 
-* Your commit message is descriptive.
-* Your patch doesn't have useless merge commits.
-* Your coding style is similar to ours.
-* Your patch is 100% tested. JUnit are welcome.
-* All tests checks pass (run `./gradlew check`)
-* You understand that we're very grateful for your patch!
+- Сообщение коммита понятное и описательное
+- Нет лишних merge-коммитов
+- Стиль кода соответствует принятому в проекте
+- Изменения покрыты тестами (JUnit приветствуется)
+- Все проверки проходят: `./gradlew check`
 
-## :heart: Adding something new
+## ❤️ Хотите добавить новую функциональность?
 
-We do love to enhance НТ Мастер with you to become more powerful!
-The best way to workout your idea is to discuss it first at our dev mailing list:
+Перед разработкой обсудите идею с командой — это поможет убедиться, что решение вписывается в архитектуру и планы проекта.
 
-* [JMeter developers mailing list](https://www.psbank.ru/bank/af000010)
+## 📕 Хотите улучшить документацию?
 
-Please, if you can, don't just throw us the code of a new feature; lets figure first together
-what would be the best approach regarding the current architecture and future plans,
-before any development.
-This way we all get sure that your idea is aligned with the codebase and you can enjoy
-your happy coding even more :)
-
-## :closed_book: Want to write docs
-
-Documentation is very valuable to us.
-
-It is located in **[xdocs](xdocs)** folder in XML format.
-
-You can contribute as you would for code through patch or *PR* (pull request).
+Документация находится в папке **[xdocs](xdocs)** в формате XML. Вносить изменения можно так же, как и в код — через PR.

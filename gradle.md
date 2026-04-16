@@ -1,181 +1,164 @@
-# Gradle Command-Line
+# Gradle: команды и таски
 
-Useful commands (`gw` comes from https://github.com/dougborg/gdub, otherwise `./gradlew` can be used instead):
+В примерах используется `./gradlew`. Если установлен [gdub](https://github.com/dougborg/gdub), можно использовать сокращение `gw`.
 
-## Build and run
+## Сборка и запуск
 
-      # Build and start JMeter GUI
-      gw runGui
+```sh
+# Собрать дистрибутив и запустить GUI НТ Мастер
+./gradlew runGui
 
-      # Build project and copy relevant jars to rootDir/lib, and start JMeter
-      gw createDist; ./bin/jmeter
+# Собрать дистрибутив, разложить JAR в lib/ и bin/, запустить
+./gradlew createDist && ./bin/jmeter
 
-      # Build all distributions (source, binary)
-      gw :src:dist:assemble
+# Собрать все дистрибутивы (исходники + бинарник)
+./gradlew :src:dist:assemble
+```
 
-## Base project info
+## Nexus RAW bundle
 
-      # Display all submodules
-      gw projects
+```sh
+# Скачать bundle (lib/ + bin/ + extras/) из Nexus RAW и разложить по местам
+./gradlew :src:dist:pullLibsBundle
 
-      # Different tasks for current module
-      gw tasks
+# Упаковать текущие lib/ + bin/ + extras/ и загрузить в Nexus RAW
+./gradlew :src:dist:pushLibsBundle
+```
 
-## Cleaning build directories
+## Публикация в Nexus Maven
 
-Technically `clean` should not be required, every time it is required it might be a bug.
-However it might be useful to perform a "clean" build:
+```sh
+# Собрать ZIP-артефакт и опубликовать в Nexus Maven (snapshots или releases)
+./gradlew :src:dist:publishAll
 
-      # Cleans current project (submodule)
-      gw clean
+# Полный цикл релиза: distZip + publishAll
+./gradlew :src:dist:release
+```
 
-      # Cleans the specified project
-      gw :src:core:clean
+## Информация о проекте
 
-## Dependencies
+```sh
+# Показать все подмодули
+./gradlew projects
 
-      # Displays dependencies. Gradle's "configurations" are something like different classpaths.
-      gw dependencies
+# Показать доступные таски текущего модуля
+./gradlew tasks
+```
 
-      # Displays dependencies for all projects
-      gw allDependencies
+## Очистка
 
-      # Analyze why the project depends on `org.ow2.asm:asm`
-      gw dependencyInsight --dependency org.ow2.asm:asm
+Технически `clean` не должен требоваться при обычной разработке. Если он нужен — скорее всего, это признак бага в сборке.
 
-      # Verify checksums of dependencies
-      # Checksum verification is done by default
-      # Expected checksums are stored in /checksum.properties file
-      # Actual checksums are stored in /build/checksum/computed.checksum.properties
+```sh
+# Очистить текущий проект
+./gradlew clean
 
-      # Update expected dependencies after updating a dependency version
-      gw -PupdateExpectedJars check
+# Очистить конкретный субпроект
+./gradlew :src:core:clean
+```
 
-## Static checks
+## Зависимости
 
-### Release Audit Tool
+```sh
+# Показать дерево зависимостей
+./gradlew dependencies
 
-      # Run RAT
-      gw rat
+# Показать зависимости всех проектов
+./gradlew allDependencies
 
-### Code Formatting
+# Анализ: почему проект зависит от org.ow2.asm:asm
+./gradlew dependencyInsight --dependency org.ow2.asm:asm
 
-      # Run spotlessApply and checkstyleAll
-      gw style
+# Обновить ожидаемые контрольные суммы после смены версии зависимости
+./gradlew -PupdateExpectedJars check
+```
 
-      # Run checkstlye for all
-      gw checkstyleAll
+## Статический анализ
 
-#### Fine Grained Formatting Commands
+```sh
+# Запустить Checkstyle для основного кода
+./gradlew checkstyleMain
 
-      # Run checkstyle for main (non-test) code
-      gw checkstyleMain
+# Запустить Checkstyle для тестового кода
+./gradlew checkstyleTest
 
-      # Run checkstyle for test code
-      gw checkstyleTest
+# Запустить все проверки стиля
+./gradlew checkstyleAll
 
-      # Run Spotless checks
-      gw spotlessCheck
+# Проверить форматирование через Spotless
+./gradlew spotlessCheck
 
-      # Fix any issues found by Spotless
-      gw spotlessApply
+# Исправить форматирование через Spotless
+./gradlew spotlessApply
 
-## Compiling Code
+# Запустить Spotless + Checkstyle одной командой
+./gradlew style
+```
 
-      gw compileJava
-      gw compileTestJava
-      ...
+## Компиляция
 
-## Build Project
+```sh
+./gradlew compileJava
+./gradlew compileTestJava
+```
 
-      # Just build jar (see build/libs/*.jar)
-      gw jar
+## Сборка
 
-      # "build" is a default task to "execute all the actions"
-      gw build
+```sh
+# Собрать JAR (результат в build/libs/*.jar)
+./gradlew jar
 
-      # Test might be skipped by `-x test` (Gradle's default way to skip task by name)
-      gw -x test build
+# Полная сборка со всеми проверками
+./gradlew build
 
-      # Build project in parallel
-      gw build --parallel
+# Сборка без тестов
+./gradlew build -x test
 
-## Tests
+# Параллельная сборка
+./gradlew build --parallel
+```
 
-Gradle automatically tracks task dependencies, so if you modify a file in `/src/jorphan/*`,
-then you can invoke `gw check` at project level or in `core`, and Gradle will automatically
-build only the required jars and files.
+## Тесты
 
-      # Runs all the tests (unit tests, checkstyle, etc)
-      gw check
+Gradle автоматически отслеживает зависимости задач. Если изменить файл в `:src:jorphan`, можно запустить `check` в корне или в `core` — Gradle сам пересоберёт только нужные JAR.
 
-      # Runs just unit tests
-      gw test
+```sh
+# Запустить все тесты (unit-тесты, checkstyle и т.д.)
+./gradlew check
 
-      # Runs just core tests
-      gw :src:core:test
+# Только unit-тесты
+./gradlew test
 
-## Coverage
+# Тесты конкретного субпроекта
+./gradlew :src:core:test
+```
 
-      # Generates code coverage report for the test task to build/reports/jacoco/test/html
-      gw jacocoTestReport
+## Покрытие кода
 
-      # Generate combined coverage report
-      gw jacocoReport
+```sh
+# Отчёт покрытия для task test → build/reports/jacoco/test/html
+./gradlew jacocoTestReport
 
-## Generate Javadocs
+# Агрегированный отчёт покрытия
+./gradlew jacocoReport
+```
 
-      # Builds javadoc to build/docs/javadoc subfolder
-      gw javadoc
+## Javadoc
 
-      # Builds javadoc jar to build/libs/jorphan-javadoc.jar
-      gw javadocJar
+```sh
+# Сгенерировать Javadoc → build/docs/javadoc
+./gradlew javadoc
 
-## Site
-
-      # Creates preview of a site to src/dist/build/site
-      gw :src:dist:previewSite
-
-      # Builds and publishes site preview to a Git repository
-      gw :src:dist:pushPreviewSite
+# Сгенерировать Javadoc JAR → build/libs/*-javadoc.jar
+./gradlew javadocJar
+```
 
 ## Maven
 
-      # publishes Maven artifact to local repository
-      gw publishToMavenLocal
+```sh
+# Опубликовать Maven-артефакт в локальный репозиторий
+./gradlew publishToMavenLocal
 
-      # Generate all pom files (pom-default.xml)
-      # The files are placed under the individual src/**/build/publications folders
-      gw generatePom
-
-## Release Artifacts
-
-      # Builds ZIP and TGZ artifacts for the release
-      gw :src:dist:assemble
-
-## Signing
-
-It is implemented via [gradle signing plugin](https://docs.gradle.org/5.2.1/userguide/signing_plugin.html),
-so it is done automatically provided credentials are specified via
-[signatory credentials](https://docs.gradle.org/5.2.1/userguide/signing_plugin.html#sec:signatory_credentials)
-
-      # Signs all the artifacts of the current module
-      # see results in build/**/*.asc
-      gw sign
-> **Note:** signing is performed as a part of *release artifact build* so it will be
-> performed with `gw :src:dist:assemble`
-
-## Releasing
-
-      # Builds the project, pushes artifacts to svn://.../dev,
-      # stages artifacts to Nexus staging repository
-      gw prepareVote -Prc=1
-
-> **Note:** The above step uses [an asf-like release environment](https://github.com/vlsi/asflike-release-environment),
-> so it does not alter public repositories
-
-      # Prepare another release candidate
-      gw prepareVote -Prc=2 -Pasf
-
-      # Release staged artifacts to SVN and Nexus
-      gw publishDist -Prc=2 -Pasf
+# Сгенерировать pom-файлы (результат в src/**/build/publications/)
+./gradlew generatePom
+```
