@@ -278,7 +278,7 @@ dependencies {
 // ── runGui — для разработчика ────────────────────────────────────────────────────────
 tasks.register('runGui', JavaExec) {
     group       = 'Development'
-    description = 'Получает bundle из Nexus RAW, собирает дистрибутив и запускает JMeter GUI'
+    description = 'Собирает дистрибутив и запускает JMeter GUI'
     dependsOn   'pullLibsBundle', 'createDist'
     workingDir  = file("${project.rootDir}/bin")
     main        = 'org.apache.jmeter.NewDriver'

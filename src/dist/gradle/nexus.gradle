@@ -1,6 +1,4 @@
 /*
- * gradle/nexus.gradle
- *
  * Вся работа с Nexus:
  *
  *   [RAW bundle]
@@ -10,12 +8,12 @@
  *   [Maven publish]
  *   publishAll      — одна кнопка: createDist → assembleArtifact → publish
  *
- * Credentials берутся из gradle.properties (файл в .gitignore!):
+ * Credentials берутся из gradle.properties:
  *   nexusRawRepoUrl=http://nexus:8081/repository/jmeter-raw/
  *   snapshotsRepoUrl=http://nexus:8081/repository/jmeter-snapshots/
  *   releasesRepoUrl=http://nexus:8081/repository/jmeter-releases/
- *   mavenUsername=deployer
- *   mavenPassword=secret
+ *   mavenUsername=
+ *   mavenPassword=
  *
  * Либо через env-переменные: MVN_USER / MVN_PASS
  */
@@ -45,6 +43,11 @@ def bundleFile = file("${downloadDir}/${BUNDLE_NAME}")
 //  RAW BUNDLE — pull
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * [internal] Скачивает bundle jmeter-libs.zip из Nexus RAW через HttpURLConnection.
+ * Используем plain HTTP вместо de.undercouch.download, потому что классы плагина
+ * недоступны в apply-from скриптах в Gradle 7.x.
+ */
 tasks.register('downloadLibsBundle') {
     description = '[internal] Скачивает bundle jmeter-libs.zip из Nexus RAW'
     outputs.file bundleFile
@@ -79,8 +82,6 @@ tasks.register('downloadLibsBundle') {
     }
 }
 
-// INCLUDE: если в ZIP вдруг окажется несколько энтрий с одинаковым именем — все попадут в unpacked,
-// последняя запись победит. Это именно то поведение которое называют "overwrite".
 tasks.register('unpackLibsBundle', Copy) {
     description = '[internal] Распаковывает bundle в buildDir/unpacked'
     dependsOn 'downloadLibsBundle'
