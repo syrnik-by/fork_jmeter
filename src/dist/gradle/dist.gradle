@@ -7,21 +7,16 @@
  *   copyBinLibs       — Copy bin/
  *   createDist        — lifecycle: dependsOn copyLibs + copyBinLibs
  *   assembleArtifact  — финальная сборка продукта: ZIP для публикации в Nexus Maven
- *   distZip / distTar — архивы дистрибутива для пользователей
  *
  * Зависит от переменных, объявленных в build.gradle:
  *   pluginAliases, jars, lib(), ver(), gav()
  * Зависит от конфигураций:
- *   runtimeClasspath, pluginClasspath, generatorJar, binLicense
+ *   runtimeClasspath, pluginClasspath, generatorJar
  *
- * NOTE: CrLfSpec и LineEndings подключаются динамически через Class.forName,
- *       потому что apply-from скрипты не наследуют classpath плагинов buildscript.
- *       Используем project.class.classLoader — он видит все плагины проекта.
+ * NOTE: distZip/distTar (архивы Apache-релиза) удалены из этого скрипта.
+ *   CrLfSpec — Kotlin-класс с extension functions, недоступнымииз Groovy DSL.
+ *   Для нашего рабочего процесса достаточно assembleArtifact + publishAll.
  */
-
-// Динамическая загрузка CrLfSpec / LineEndings через classloader проекта (видит плагины из plugins {})
-def CrLfSpecClass   = Class.forName('com.github.vlsi.gradle.crlf.CrLfSpec',   true, project.class.classLoader)
-def LineEndingsClass = Class.forName('com.github.vlsi.gradle.crlf.LineEndings', true, project.class.classLoader)
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
@@ -129,97 +124,5 @@ tasks.register('assembleArtifact', Zip) {
         include 'bin/**'
         include 'lib/**'
         include 'extras/**'
-    }
-}
-
-// ── Docs helpers ──────────────────────────────────────────────────────────────
-def xdocs = "${rootDir}/xdocs"
-
-def docCssAndImages = { spec ->
-    spec.from(xdocs) {
-        include '.htaccess'
-        include 'css/**'
-        include 'images/**'
-    }
-}
-
-def printableDocumentation = { spec ->
-    spec.into('docs') { docCssAndImages(delegate) }
-}
-
-def excludeLicenseFromSourceRelease = { spec ->
-    spec.exclude 'licenses/**'
-    spec.exclude 'LICENSE'
-}
-
-def baseFolder = "apache-jmeter-${rootProject.version}"
-
-def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
-    group       = JavaBasePlugin.DOCUMENTATION_GROUP
-    description = 'Генерирует агрегированный Javadoc для всех fork-модулей'
-    def sourceSets = jars.collect { project(it).sourceSets.main }
-    classpath      = files(sourceSets.collect { ss -> ss.collect { it.output + it.compileClasspath } })
-    source(sourceSets.collect { ss -> ss.collect { it.allJava } })
-    destinationDir = file("${buildDir}/docs/javadocAggregate")
-}
-
-def javadocsSpec = copySpec { from(javadocAggregate) }
-
-// binaryLayout — доступен для distZip / distTar ниже
-// CrLfSpec создаётся динамически, чтобы не требовать import в apply-from скрипте
-def binaryLayout = { eol ->
-    def spec = CrLfSpecClass.newInstance(eol)
-    spec.copySpec {
-        into(baseFolder) {
-            from files(configurations.binLicense)
-            from(rootDir) {
-                exclude 'bin/testfiles'
-                exclude 'bin/rmi_keystore.jks'
-                include 'bin/**'
-                include 'lib/ext/**'
-                include 'lib/junit/**'
-                include 'extras/**'
-                include 'README.md'
-                excludeLicenseFromSourceRelease(delegate)
-            }
-            into('bin') { with binLibs }
-            into('lib') {
-                with libsSpec
-                into('ext') { with libsExt }
-            }
-            printableDocumentation(delegate)
-            into('docs/api') { with javadocsSpec }
-        }
-    }
-}
-
-// ── skipDist guard ────────────────────────────────────────────────────────────
-def skipDist = {
-    def extProps = rootProject.extensions.extraProperties
-    if (extProps.has('skipDist')) return extProps.get('skipDist') as boolean
-    def prop = rootProject.findProperty('skipDist')
-    if (prop == null) return false
-    return !(prop as String).equalsIgnoreCase('false')
-}()
-
-// ── distZip / distTar — архивы дистрибутива для пользователей ────────────────
-if (!skipDist) {
-    def LF   = LineEndingsClass.getField('LF').get(null)
-    def CRLF = LineEndingsClass.getField('CRLF').get(null)
-
-    ['binary', 'source'].each { type ->
-        [Zip, Tar].each { archiveClass ->
-            def taskName = "dist${archiveClass.simpleName}${type == 'binary' ? '' : type.capitalize()}"
-            tasks.register(taskName, archiveClass) {
-                dependsOn createDist
-                def eol = (archiveClass == Tar) ? LF : CRLF
-                group       = 'distribution'
-                description = "Создаёт $type дистрибутив"
-                if (it instanceof Tar) compression = Compression.GZIP
-                archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
-                archiveVersion  = ''
-                with binaryLayout(eol)
-            }
-        }
     }
 }
