@@ -16,11 +16,12 @@
  *
  * NOTE: CrLfSpec и LineEndings подключаются динамически через Class.forName,
  *       потому что apply-from скрипты не наследуют classpath плагинов buildscript.
+ *       Используем project.class.classLoader — он видит все плагины проекта.
  */
 
-// Динамическая загрузка CrLfSpec / LineEndings из classpath плагина vlsi
-def CrLfSpecClass   = Class.forName('com.github.vlsi.gradle.crlf.CrLfSpec',   true, buildscript.classLoader)
-def LineEndingsClass = Class.forName('com.github.vlsi.gradle.crlf.LineEndings', true, buildscript.classLoader)
+// Динамическая загрузка CrLfSpec / LineEndings через classloader проекта (видит плагины из plugins {})
+def CrLfSpecClass   = Class.forName('com.github.vlsi.gradle.crlf.CrLfSpec',   true, project.class.classLoader)
+def LineEndingsClass = Class.forName('com.github.vlsi.gradle.crlf.LineEndings', true, project.class.classLoader)
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
