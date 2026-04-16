@@ -79,24 +79,33 @@ tasks.register('downloadLibsBundle') {
     }
 }
 
+// INCLUDE: если в ZIP вдруг окажется несколько энтрий с одинаковым именем — все попадут в unpacked,
+// последняя запись победит. Это именно то поведение которое называют "overwrite".
 tasks.register('unpackLibsBundle', Copy) {
     description = '[internal] Распаковывает bundle в buildDir/unpacked'
     dependsOn 'downloadLibsBundle'
     from zipTree(bundleFile)
     into unpackedDir
-    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     includeEmptyDirs   = false
 }
 
-tasks.register('copyBundleToRoot', Copy) {
-    description = '[internal] Копирует lib/ и bin/ из unpacked в корень проекта'
+// Sync (а не Copy) — полная синхронизация папок назначения:
+// удаляет файлы которых нет в источнике + перезаписывает существующие. Это точный эквивалент
+// понятия "overwrite + cleanup".
+tasks.register('copyBundleToRoot', Sync) {
+    description = '[internal] Синхронизирует lib/ и bin/ из unpacked в корень проекта'
     dependsOn 'unpackLibsBundle'
     from(unpackedDir) {
         include 'bin/**'
         include 'lib/**'
     }
     into rootDir
-    duplicatesStrategy = DuplicatesStrategy.OVERWRITE
+    // Сохраняем всё что не относится к bin/ и lib/ — не трогаем файлы проекта в корне
+    preserve {
+        exclude 'bin/**'
+        exclude 'lib/**'
+    }
 }
 
 tasks.register('pullLibsBundle') {
