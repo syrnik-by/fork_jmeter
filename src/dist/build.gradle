@@ -25,7 +25,7 @@
 //
 //  Структура gradle/:
 //    gradle/nexus.gradle  — Nexus RAW bundle (pull/push) + Maven publish
-//    gradle/dist.gradle   — populateLibs → createDist → assembleArtifact
+//    gradle/dist.gradle   — populateLibs → createDist → assembleArtifact → distZip/Tar
 // ────────────────────────────────────────────────────────────────────────────────
 
 plugins {
@@ -34,6 +34,12 @@ plugins {
     id 'com.github.vlsi.crlf'
     id 'maven-publish'
 }
+
+// ── CrLfSpec / LineEndings: передаём в dist.gradle через ext ──────────────────────────
+// Здесь classpath плагина com.github.vlsi.crlf доступен — импорт работает напрямую.
+// apply from: скрипты наследуют эти значения через project.ext.
+ext.CrLfSpecClass    = com.github.vlsi.gradle.crlf.CrLfSpec
+ext.LineEndingsClass  = com.github.vlsi.gradle.crlf.LineEndings
 
 apply from: 'gradle/nexus.gradle'
 apply from: 'gradle/dist.gradle'
@@ -296,11 +302,12 @@ tasks.register('runGui', JavaExec) {
 }
 
 // ── release — для CI/CD ───────────────────────────────────────────────────────────────────
-//    publishAll (nexus.gradle) — createDist → assembleArtifact → publish в Nexus Maven
+//    distZip  (dist.gradle)    — архив для пользователей
+//    publishAll (nexus.gradle) — публикация в Nexus Maven
 tasks.register('release') {
     group       = 'release'
-    description = 'Полный цикл: createDist → assembleArtifact → publish в Nexus Maven'
-    dependsOn   'publishAll'
+    description = 'Полный цикл: createDist → distZip + assembleArtifact → publishAll'
+    dependsOn   'distZip', 'publishAll'
 }
 
 // ── Clean ────────────────────────────────────────────────────────────────────────────────
