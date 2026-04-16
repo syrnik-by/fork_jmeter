@@ -13,10 +13,15 @@
  *   pluginAliases, jars, lib(), ver(), gav()
  * Зависит от конфигураций:
  *   runtimeClasspath, pluginClasspath, generatorJar, binLicense
+ *
+ * NOTE: CrLfSpec и LineEndings подключаются динамически через Class.forName,
+ *       потому что apply-from скрипты не наследуют classpath плагинов buildscript.
  */
 
-import com.github.vlsi.gradle.crlf.CrLfSpec
-import com.github.vlsi.gradle.crlf.LineEndings
+// Динамическая загрузка CrLfSpec / LineEndings из classpath плагина vlsi
+def CrLfSpecClass   = Class.forName('com.github.vlsi.gradle.crlf.CrLfSpec',   true, buildscript.classLoader)
+def LineEndingsClass = Class.forName('com.github.vlsi.gradle.crlf.LineEndings', true, buildscript.classLoader)
+
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 // ── CopySpecs (lib/ | lib/ext/ | bin/) ────────────────────────────────────────
@@ -129,7 +134,7 @@ tasks.register('assembleArtifact', Zip) {
 // ── Docs helpers ──────────────────────────────────────────────────────────────
 def xdocs = "${rootDir}/xdocs"
 
-def docCssAndImages = { CopySpec spec ->
+def docCssAndImages = { spec ->
     spec.from(xdocs) {
         include '.htaccess'
         include 'css/**'
@@ -137,11 +142,11 @@ def docCssAndImages = { CopySpec spec ->
     }
 }
 
-def printableDocumentation = { CopySpec spec ->
+def printableDocumentation = { spec ->
     spec.into('docs') { docCssAndImages(delegate) }
 }
 
-def excludeLicenseFromSourceRelease = { CopySpec spec ->
+def excludeLicenseFromSourceRelease = { spec ->
     spec.exclude 'licenses/**'
     spec.exclude 'LICENSE'
 }
@@ -160,8 +165,10 @@ def javadocAggregate = tasks.register('javadocAggregate', Javadoc) {
 def javadocsSpec = copySpec { from(javadocAggregate) }
 
 // binaryLayout — доступен для distZip / distTar ниже
-def binaryLayout = { CrLfSpec crlfSpec ->
-    crlfSpec.copySpec {
+// CrLfSpec создаётся динамически, чтобы не требовать import в apply-from скрипте
+def binaryLayout = { eol ->
+    def spec = CrLfSpecClass.newInstance(eol)
+    spec.copySpec {
         into(baseFolder) {
             from files(configurations.binLicense)
             from(rootDir) {
@@ -196,19 +203,21 @@ def skipDist = {
 
 // ── distZip / distTar — архивы дистрибутива для пользователей ────────────────
 if (!skipDist) {
+    def LF   = LineEndingsClass.getField('LF').get(null)
+    def CRLF = LineEndingsClass.getField('CRLF').get(null)
+
     ['binary', 'source'].each { type ->
         [Zip, Tar].each { archiveClass ->
             def taskName = "dist${archiveClass.simpleName}${type == 'binary' ? '' : type.capitalize()}"
             tasks.register(taskName, archiveClass) {
                 dependsOn createDist
-                def eol = (archiveClass == Tar) ? LineEndings.LF : LineEndings.CRLF
+                def eol = (archiveClass == Tar) ? LF : CRLF
                 group       = 'distribution'
                 description = "Создаёт $type дистрибутив"
                 if (it instanceof Tar) compression = Compression.GZIP
                 archiveBaseName = "apache-jmeter-${rootProject.version}${type == 'source' ? '_src' : ''}"
                 archiveVersion  = ''
-                def spec = new CrLfSpec(eol)
-                with binaryLayout(spec)
+                with binaryLayout(eol)
             }
         }
     }
